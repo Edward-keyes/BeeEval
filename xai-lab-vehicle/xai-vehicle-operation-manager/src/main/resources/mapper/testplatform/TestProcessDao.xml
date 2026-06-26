@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestProcessDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestProcessEntity" id="testProcessMap">
+        <result property="id" column="id"/>
+        <result property="levelOneName" column="level_one_name"/>
+        <result property="levelTwoName" column="level_two_name"/>
+        <result property="levelThreeName" column="level_three_name"/>
+        <result property="step" column="step"/>
+        <result property="processTitle" column="process_title"/>
+        <result property="description" column="description"/>
+        <result property="tip" column="tip"/>
+        <result property="quesOne" column="ques_one"/>
+        <result property="quesTwo" column="ques_two"/>
+        <result property="quesThree" column="ques_three"/>
+        <result property="optionsTitle" column="options_title"/>
+        <result property="optionsType" column="options_type"/>
+    </resultMap>
+
+</mapper>

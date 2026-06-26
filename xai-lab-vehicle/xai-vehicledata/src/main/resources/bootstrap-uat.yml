@@ -1,0 +1,65 @@
+namespace: 43232204-1eeb-4f01-a202-a4a2eb391584 # 仿真专用命名空间
+group: DEFAULT_GROUP # 开发专用组
+server-addr: 112.124.30.149:8848
+nacos-username: nacos
+nacos-password: nice2035
+server:
+  port: 8181 #暴露端口
+
+spring:
+  cloud:
+    nacos:
+      username: ${nacos-username}
+      password: ${nacos-password}
+      config:
+        server-addr: ${server-addr}
+        namespace: ${namespace}
+        file-extension: yaml
+        group: ${group}
+      discovery:
+        server-addr: ${server-addr}
+        namespace: ${namespace}
+        group: ${group}
+#        register-enabled: false # TODO 改为false
+  devtools:
+    restart:
+      #????????
+      enabled: true
+      # ???????????restart
+      additional-paths: src/main/java
+      #????????????restart
+      #exclude:
+
+  ############## email configuration ##############
+  #  mail:
+  #    #smtp????  qq????smtp.qq.com
+  #    host: smtp.163.com
+  #    #????
+  #    protocol: smtp
+  #    # ???
+  #    default-encoding: UTF-8
+  #    #??????? TODO ?????????
+  #    username: d2460687074@163.com
+  #    #???
+  #    password: RSR2Erw594zm3bMj
+  #    test-connection: true
+  #    port: 465
+  #    properties:
+  #      mail:
+  #        smtp:
+  #          ssl:
+  #            enable: true
+  #            socketFactory:
+  #              port: 465
+  #              class: javax.net.ssl.SSLSocketFactory
+  #          auth: true
+  #          starttls:
+  #            enable: true
+  #            required: true
+  # ???
+#  ssl:
+#    enabled: true
+#    key-store: classpath:keystore.p12
+#    key-store-password: nice2035
+#    key-store-type: PKCS12
+#    key-alias: tomcat

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.DomainTestCaseDao">
+
+
+    <select id="getByVehicleIdAndDomainIndexId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.DomainTestCaseEntity">
+
+        select * from domain_test_case where vehicle_id = #{vehicleId} and domain_index_id = #{domainIndexId}
+
+    </select>
+
+    <select id="queryCaseByVehicleIdAndDomainIndexId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.response.DomainTestCaseResponse">
+
+        SELECT
+            <if test="language == 'zh_home_top'">
+                a.test_instruct,
+                a.interpretation_of_result,
+                concat(d.brand,"-",c.vehicle_model) vehicle_name,
+                b.index_name,b.definition detail,
+            </if>
+        <if test="language == 'en'">
+            a.test_instruct_en test_instruct,
+            a.interpretation_of_result_en interpretation_of_result,
+            concat(d.brand_en,"-",c.vehicle_model) vehicle_name,
+            b.index_name_en index_name,b.definition_en detail,
+        </if>
+               a.score,
+               a.response_photo_name url,
+               a.vehicle_id
+        FROM
+        `vehicle_domain_test_case` a,
+        vehicle_domain_index b,
+        vehicle_base_info c,
+        vehicle_brand d
+        where
+        a.domain_index_id = #{domainIndexId}
+<!--        <if test="vehicleIds!= null and vehicleIds.size() > 0">-->
+<!--            AND-->
+<!--            a.vehicle_id in-->
+<!--            <foreach collection="vehicleIds" item="id" open="(" separator="," close=")">-->
+<!--                #{id}-->
+<!--            </foreach>-->
+<!--        </if>-->
+        AND
+        a.domain_index_id = b.id and a.vehicle_id = c.id and c.brand_id = d.id
+
+    </select>
+</mapper>

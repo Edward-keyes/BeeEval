@@ -1,0 +1,7 @@
+server:
+  shutdown: graceful
+spring:
+  jackson:
+    time-zone: GMT+8
+  application:
+    name: xai-vehicle-operation-manager

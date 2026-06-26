@@ -1,0 +1,13 @@
+server:
+  servlet:
+    context-path: /xai-vehicledata
+spring:
+  application:
+    name: xai-vehicledata
+  # jackson 配置
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+logging:
+  level:
+    com.bmw.gameApp: debug

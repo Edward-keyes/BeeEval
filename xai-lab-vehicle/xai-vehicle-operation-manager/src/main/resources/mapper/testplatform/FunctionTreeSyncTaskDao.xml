@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.FunctionTreeSyncTaskDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.FunctionTreeSyncTaskEntity" id="functionTreeSyncTaskMap">
+        <result property="id" column="id"/>
+        <result property="taskSerial" column="task_serial"/>
+        <result property="taskName" column="task_name"/>
+        <result property="description" column="description"/>
+        <result property="testRecordId" column="test_record_id"/>
+        <result property="vehicleId" column="vehicle_id"/>
+        <result property="syncRule" column="sync_rule"/>
+        <result property="taskState" column="task_state"/>
+        <result property="taskMessage" column="task_message"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+</mapper>

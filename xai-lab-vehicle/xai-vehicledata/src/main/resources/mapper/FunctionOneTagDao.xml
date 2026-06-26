@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionOneTagDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.FunctionOneTagEntity" id="functionOneTagMap">
+        <result property="id" column="id"/>
+        <result property="tagNumber" column="tag_number"/>
+        <result property="tagName" column="tag_name"/>
+    </resultMap>
+
+    <select id="queryAllOneTagCountThreeTag"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionalDomainVo">
+
+--         SELECT
+--             a.id AS id,
+--             a.tag_name,
+--             COUNT(c.id) AS count
+--         FROM
+--             vehicle_function_one_tag a
+--             LEFT JOIN
+--             vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+--             LEFT JOIN
+--             vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+--         GROUP BY
+--             a.id;
+
+            SELECT
+                a.id one_id,
+                <if test="language =='en'">
+                    a.tag_name_en one_tag_name,
+                    c.tag_name_en three_tag_name,
+                </if>
+                <if test="language == 'zh_home_top'">
+                    a.tag_name one_tag_name,
+                    c.tag_name three_tag_name,
+                </if>
+                c.id three_id
+            FROM
+                vehicle_function_one_tag a
+                    LEFT JOIN
+                vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+                    LEFT JOIN
+                vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+            where
+                a.id != 456422482807619584
+    </select>
+
+    <select id="queryAllHighlightFunction" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.HighlightFunctionVo">
+
+        SELECT
+               <if test="language == 'en' ">
+                    z.tag_name_en one_tag_name,
+                   a.tag_name_en two_tag_name,
+                   b.tag_name_en three_tag_name,
+                   CONCAT(e.brand_en,"-",d.vehicle_model) brand_model,
+               </if>
+               <if test="language == 'zh_home_top' ">
+                    z.tag_name one_tag_name,
+                   a.tag_name two_tag_name,
+                   b.tag_name three_tag_name,
+                   CONCAT(e.brand,"-",d.vehicle_model) brand_model,
+               </if>
+               z.tag_icon,
+               c.video_number,
+               c.vehicle_id,
+               d.status,
+               c.video_str srt_url
+               from
+            vehicle_function_one_tag z left join
+            vehicle_function_two_tag a on z.id = a.function_one_tag_id left join
+            vehicle_function_three_tag b on a.id = b.function_two_tag_id
+                                       left JOIN vehicle_function_tree c on b.id=c.function_three_tag_id
+                                       left JOIN vehicle_base_info d on c.vehicle_id = d.id
+                                       left join vehicle_brand e on d.brand_id = e.id
+        where c.function_list = 1
+          and c.video_number is not null
+          and c.video_number != ""
+          and c.id not in (465441854398136324,465441854398136322,465441854398136320)
+
+    </select>
+
+    <select id="queryAllFunctionTag" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionTagVo">
+        select
+            <if test="language == 'en'">
+                z.tag_name_en one_tag_name,
+                a.tag_name_en two_tag_name,
+                b.tag_name_en three_tag_name,
+            </if>
+            <if test="language == 'zh_home_top'">
+                z.tag_name one_tag_name,
+                a.tag_name two_tag_name,
+                b.tag_name three_tag_name,
+            </if>
+
+            b.id three_id FROM
+            vehicle_function_one_tag z left join
+            vehicle_function_two_tag a on z.id = a.function_one_tag_id left join
+            vehicle_function_three_tag b on a.id = b.function_two_tag_id
+        where z.`status`=1
+    </select>
+
+    <select id="queryVideoByThreeTagIdAndVehicleId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionTreeVideoVo">
+        select
+            <if test="language == 'en'">
+                b.description_en description,
+                c.function_label_en function_label,
+            </if>
+            <if test="language == 'zh_home_top'">
+                b.description,
+                c.function_label,
+            </if>
+            c.picture_number,
+            c.video_number,
+            c.video_str
+        from
+            vehicle_function_tree c
+                left join vehicle_function_three_tag b on c.function_three_tag_id =b.id
+        where c.vehicle_id=${vehicleId} and b.id =${threeTagId}
+    </select>
+    <select id="queryOtherVideoByThreeTagId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionTreeCompareVehicleVo">
+        select
+            <if test="language=='en'">
+                concat(e.brand_en,"-",a.vehicle_model) brand_model,
+                b.description_en description,
+                c.function_label_en function_label,
+            </if>
+            <if test="language=='zh_home_top'">
+                concat(e.brand,"-",a.vehicle_model) brand_model,
+                b.description,
+                c.function_label,
+            </if>
+            c.picture_number,
+            c.vehicle_id,
+            c.video_number,
+            c.video_str srt_url
+        from
+            vehicle_brand e left join
+            vehicle_base_info a on e.id = a.brand_id left join
+            vehicle_function_tree c on a.id = c.vehicle_id
+                left join vehicle_function_three_tag b on c.function_three_tag_id =b.id
+        where b.id =${threeTagId} and c.vehicle_id != ${vehicleId}
+        <if test="vehicleIds != null and vehicleIds.size() > 0">
+            and
+            a.id in
+            <foreach collection="vehicleIds" item="i" open="(" separator="," close=")">
+                #{i}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="getAllOneAndTwoTag"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionTreeOneAndTwoTagVo">
+
+        SELECT
+            a.id one_tag_id,
+            a.tag_number one_tag_number,
+            a.tag_name one_tag_name,
+            b.id two_tag_id,
+            b.tag_number two_tag_number,
+            b.tag_name two_tag_name,
+            c.id three_tag_id,
+            c.tag_number three_tag_number,
+            c.tag_name three_tag_name
+        FROM
+            vehicle_function_one_tag a,
+            vehicle_function_two_tag b,
+            vehicle_function_three_tag c
+        WHERE
+            a.id = b.function_one_tag_id
+            AND b.id = c.function_two_tag_id
+    </select>
+
+</mapper>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionTwoTagDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.FunctionTwoTagEntity" id="functionTwoTagMap">
+        <result property="id" column="id"/>
+        <result property="functionOneTagId" column="function_one_tag_id"/>
+        <result property="tagNumber" column="tag_number"/>
+        <result property="tagName" column="tag_name"/>
+    </resultMap>
+
+
+</mapper>

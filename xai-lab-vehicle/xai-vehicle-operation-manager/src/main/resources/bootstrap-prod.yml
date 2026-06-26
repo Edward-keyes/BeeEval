@@ -1,0 +1,22 @@
+namespace: 1c9ade73-e6eb-4470-b30d-c8fd5722df57 # 仿真专用命名空间
+group: DEFAULT_GROUP # 开发专用组
+server-addr: 172.16.247.151:8848
+nacos-username: nacos
+nacos-password: nice2035
+server:
+  port: 8745 #暴露端口
+spring:
+  cloud:
+    nacos:
+      username: ${nacos-username}
+      password: ${nacos-password}
+      config:
+        server-addr: ${server-addr}
+        namespace: ${namespace}
+        file-extension: yaml
+        group: ${group}
+      discovery:
+        server-addr: ${server-addr}
+        namespace: ${namespace}
+        group: ${group}
+#        register-enabled: false

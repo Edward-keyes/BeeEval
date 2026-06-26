@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.beeeval.dao.PcafeThreeTagDao">
+
+    <select id="getPcafeThreeTagList"
+            resultType="com.xailab.vehicle.operation.beeeval.entity.vo.TestCaseThreeTagVo">
+
+        select DISTINCT tc.task_detail,tc.function_id,tc.scenario_task
+        from test_case tc
+        where tc.scenario_id = 6
+    </select>
+
+</mapper>

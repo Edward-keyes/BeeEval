@@ -1,0 +1,62 @@
+# Auto detect text files and normalize line endings
+* text=auto
+
+# Java sources
+*.java text diff=java
+*.kt text diff=kotlin
+*.properties text
+*.xml text
+*.yml text
+*.yaml text
+
+# Maven wrapper
+mvnw text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Frontend sources
+*.ts text diff=typescript
+*.tsx text diff=typescript
+*.js text
+*.jsx text
+*.json text
+*.css text
+*.scss text
+*.html text diff=html
+*.md text diff=markdown
+
+# Images (binary)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.webp binary
+
+# Fonts (binary)
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+
+# Archives (binary)
+*.jar binary
+*.zip binary
+*.gz binary
+*.tar binary
+
+# Video (binary)
+*.mp4 binary
+*.webm binary
+
+# SQL
+*.sql text
+
+# Docker
+Dockerfile text
+docker-compose.yml text

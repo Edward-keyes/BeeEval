@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeeEval用户行为分析仪表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .team-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            min-width: 45%;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .chart-wrapper {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BeeEval用户行为分析仪表板</h1>
+            <p>基于用户监控数据的团队行为分析</p>
+        </div>
+
+        <div id="dashboard-container">
+            <!-- 图表将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        // 用户数据
+        const userData = [
+            // 奇瑞团队数据
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/all-models", target_name: "/all-models", duration: 1368937 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/all-models", target_name: "首页", duration: 628937 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/vehicle-detail", target_name: "车辆详情", duration: 556649 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/rankings", target_name: "/feature-analysis", duration: 274532 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/feature-analysis", target_name: "首页", duration: 191501 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/rankings", target_name: "/feature-analysis", duration: 164845 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/feature-analysis", target_name: "/feature-analysis", duration: 115580 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/vehicle-detail", target_name: "/llm-capabilities", duration: 101180 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/", target_name: "排行榜", duration: 99406 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "pageView", target_id: "/feature-analysis", target_name: "排行榜", duration: 83476 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "videoView", target_id: "", target_name: "百科问答 内容丰富性", duration: 55952 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "videoView", target_id: "438735847190167560-E21", target_name: "评估视频 评估", duration: 65156 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "videoView", target_id: "G2889415837310517265", target_name: "乐道-L60-出行域 undefined", duration: 49119 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "videoView", target_id: "", target_name: "日程提醒 内容丰富性", duration: 45089 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "videoView", target_id: "438735847190167560-C13", target_name: "情感对话 对话拟人化、情感化", duration: 43307 },
+            { email: "anqing@mychery.com", team: "奇瑞", event_type: "videoView", target_id: "", target_name: "百科问答 内容丰富性", duration: 41240 },
+
+            // 宝马团队数据
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "pageView", target_id: "/feature-analysis", target_name: "首页", duration: 1916104 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "pageView", target_id: "/rankings", target_name: "/feature-analysis", duration: 253860 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "videoView", target_id: "", target_name: "途径点 路程规划", duration: 48277 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "videoView", target_id: "", target_name: "模糊搜索音乐 音乐", duration: 48161 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "videoView", target_id: "", target_name: "日程提醒 内容丰富性", duration: 45040 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "videoView", target_id: "", target_name: "百科问答 内容丰富性", duration: 34068 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "pageView", target_id: "/", target_name: "排行榜", duration: 17244 },
+            { email: "Ava.Li@batw.bmwgroup.com", team: "宝马", event_type: "videoView", target_id: "", target_name: "画图 画图", duration: 16899 },
+
+            // 岚图团队数据
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "pageView", target_id: "/vehicle-detail", target_name: "车辆详情", duration: 43742 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "pageView", target_id: "/", target_name: "/feature-analysis", duration: 34160 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "videoView", target_id: "438735847190167560-C12", target_name: "角色扮演 对话拟人化、情感化", duration: 33944 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "pageView", target_id: "/", target_name: "/all-models", duration: 20444 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "videoView", target_id: "438735847190167560-E12", target_name: "指定条件音乐 音乐", duration: 18767 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "pageView", target_id: "/faq", target_name: "首页", duration: 17572 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "pageView", target_id: "/all-models", target_name: "排行榜", duration: 17255 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "videoView", target_id: "438735847190167560-B12", target_name: "操作直达 日常驾驶场景", duration: 12414 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "videoView", target_id: "438735847190167560-E11", target_name: "模糊搜索音乐 音乐", duration: 8524 },
+            { email: "h-wudc@voyah.com.cn", team: "岚图", event_type: "pageView", target_id: "/all-models", target_name: "首页", duration: 8861 },
+
+            // 商业评论团队数据
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "pageView", target_id: "/all-models", target_name: "首页", duration: 10825961 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "pageView", target_id: "/", target_name: "/contact", duration: 2524735 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "videoView", target_id: "448078678031597629-G5", target_name: "互动游戏 互动游戏", duration: 37467 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "videoView", target_id: "448078678031597629-C14", target_name: "趣味对话 对话拟人化、情感化", duration: 21993 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "videoView", target_id: "", target_name: "百科问答 内容丰富性", duration: 18426 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "pageView", target_id: "/contact", target_name: "/enterprise-membership", duration: 18034 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "pageView", target_id: "/why-us", target_name: "/feature-analysis", duration: 12441 },
+            { email: "abrmengwei@163.com", team: "商业评论", event_type: "pageView", target_id: "/rankings", target_name: "/all-models", duration: 8172 },
+
+            // 字节团队数据
+            { email: "polypang@bytedance.com", team: "字节", event_type: "pageView", target_id: "/faq", target_name: "/feature-analysis", duration: 67500269 },
+            { email: "polypang@bytedance.com", team: "字节", event_type: "pageView", target_id: "/rankings", target_name: "/all-models", duration: 21301 },
+            { email: "polypang@bytedance.com", team: "字节", event_type: "pageView", target_id: "/all-models", target_name: "首页", duration: 18587 },
+            { email: "polypang@bytedance.com", team: "字节", event_type: "pageView", target_id: "/feature-analysis", target_name: "排行榜", duration: 12179 },
+
+            // 保时捷团队数据
+            { email: "che.zhang@porsche.digital", team: "保时捷", event_type: "pageView", target_id: "/feature-analysis", target_name: "首页", duration: 3037839 },
+            { email: "che.zhang@porsche.digital", team: "保时捷", event_type: "pageView", target_id: "/rankings", target_name: "/feature-analysis", duration: 8703 },
+            { email: "che.zhang@porsche.digital", team: "保时捷", event_type: "videoView", target_id: "", target_name: "途径点 路程规划", duration: 4523 },
+            { email: "che.zhang@porsche.digital", team: "保时捷", event_type: "videoView", target_id: "", target_name: "途径点 路程规划", duration: 1391 },
+
+            // 福特团队数据
+            { email: "zhu29@jmc.com.cn", team: "福特", event_type: "pageView", target_id: "/faq", target_name: "/feature-analysis", duration: 2608 },
+            { email: "zhu29@jmc.com.cn", team: "福特", event_type: "pageView", target_id: "/feature-analysis", target_name: "排行榜", duration: 2071 }
+        ];
+
+        // 处理数据：将毫秒转为秒，并按团队分组
+        const processData = () => {
+            // 将毫秒转为秒
+            userData.forEach(item => {
+                if (item.duration) {
+                    item.duration = Math.round(item.duration / 1000);
+                }
+            });
+
+            // 按团队分组
+            const teamData = {};
+            userData.forEach(item => {
+                if (!teamData[item.team]) {
+                    teamData[item.team] = {
+                        pageViews: [],
+                        videoViews: []
+                    };
+                }
+
+                if (item.event_type === 'pageView') {
+                    teamData[item.team].pageViews.push(item);
+                } else if (item.event_type === 'videoView') {
+                    teamData[item.team].videoViews.push(item);
+                }
+            });
+
+            // 对每个团队的数据按持续时间排序并限制为前10项
+            Object.keys(teamData).forEach(team => {
+                // 页面访问排序
+                teamData[team].pageViews.sort((a, b) => b.duration - a.duration);
+                teamData[team].pageViews = teamData[team].pageViews.slice(0, 10);
+
+                // 视频观看排序
+                teamData[team].videoViews.sort((a, b) => b.duration - a.duration);
+                teamData[team].videoViews = teamData[team].videoViews.slice(0, 10);
+            });
+
+            return teamData;
+        };
+
+        // 创建图表
+        const createCharts = () => {
+            const teamData = processData();
+            const container = document.getElementById('dashboard-container');
+
+            // 为每个团队创建部分
+            Object.keys(teamData).forEach(team => {
+                const teamSection = document.createElement('div');
+                teamSection.className = 'team-section';
+
+                // 团队标题
+                const teamHeader = document.createElement('div');
+                teamHeader.className = 'team-header';
+                teamHeader.innerHTML = `<h2>${team}团队用户行为分析</h2>`;
+                teamSection.appendChild(teamHeader);
+
+                // 图表容器
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+
+                // 页面访问图表
+                const pageChartWrapper = document.createElement('div');
+                pageChartWrapper.className = 'chart-wrapper';
+
+                const pageChartTitle = document.createElement('div');
+                pageChartTitle.className = 'chart-title';
+                pageChartTitle.textContent = '页面访问时长（秒）';
+
+                const pageChartCanvas = document.createElement('canvas');
+                pageChartCanvas.id = `page-chart-${team}`;
+
+                pageChartWrapper.appendChild(pageChartTitle);
+                pageChartWrapper.appendChild(pageChartCanvas);
+
+                // 视频观看图表
+                const videoChartWrapper = document.createElement('div');
+                videoChartWrapper.className = 'chart-wrapper';
+
+                const videoChartTitle = document.createElement('div');
+                videoChartTitle.className = 'chart-title';
+                videoChartTitle.textContent = '视频观看时长（秒）';
+
+                const videoChartCanvas = document.createElement('canvas');
+                videoChartCanvas.id = `video-chart-${team}`;
+
+                videoChartWrapper.appendChild(videoChartTitle);
+                videoChartWrapper.appendChild(videoChartCanvas);
+
+                // 添加图表到容器
+                chartContainer.appendChild(pageChartWrapper);
+                chartContainer.appendChild(videoChartWrapper);
+                teamSection.appendChild(chartContainer);
+
+                // 添加团队部分到主容器
+                container.appendChild(teamSection);
+
+                // 创建页面访问图表
+                const pageData = teamData[team].pageViews;
+                createChart(
+                    `page-chart-${team}`,
+                    pageData.map(item => `${item.target_name}`),
+                    pageData.map(item => item.duration),
+                    900 // 15分钟 = 900秒
+                );
+
+                // 创建视频观看图表
+                const videoData = teamData[team].videoViews;
+                createChart(
+                    `video-chart-${team}`,
+                    videoData.map(item => item.target_name),
+                    videoData.map(item => item.duration),
+                    900 // 15分钟 = 900秒
+                );
+            });
+        };
+
+        // 创建单个图表
+        const createChart = (canvasId, labels, data, thresholdValue) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            // 为超过阈值的数据设置红色
+            const backgroundColor = data.map(value => value > thresholdValue ? 'rgba(255, 99, 132, 0.8)' : 'rgba(54, 162, 235, 0.8)');
+            const borderColor = data.map(value => value > thresholdValue ? 'rgb(255, 99, 132)' : 'rgb(54, 162, 235)');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '持续时间（秒）',
+                        data: data,
+                        backgroundColor: backgroundColor,
+                        borderColor: borderColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '时长（秒）'
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const value = context.raw;
+                                    if (value >= 3600) {
+                                        const hours = Math.floor(value / 3600);
+                                        const mins = Math.floor((value % 3600) / 60);
+                                        const secs = value % 60;
+                                        return `${hours}小时 ${mins}分钟 ${secs}秒`;
+                                    } else if (value >= 60) {
+                                        const mins = Math.floor(value / 60);
+                                        const secs = value % 60;
+                                        return `${mins}分钟 ${secs}秒`;
+                                    } else {
+                                        return `${value}秒`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // 页面加载完成后初始化图表
+        window.onload = function () {
+            createCharts();
+        };
+    </script>
+</body>
+
+</html>

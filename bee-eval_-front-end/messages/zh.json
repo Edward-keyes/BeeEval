@@ -1,0 +1,20 @@
+{
+  "header": {
+    "home": "首页",
+    "whyUs": "为什么选择我们",
+    "enterprise": "企业会员",
+    "contact": "联系我们",
+    "login": "账号登录",
+    "search": "搜索车型、功能、服务...",
+    "allModels": "全部车型"
+  },
+  "footer": {
+    "about": "关于我们",
+    "aboutText": "BeeEval是领先的智能汽车评测平台，致力于为用户提供最专业、全面的汽车体验分析。",
+    "quickLinks": "快速链接",
+    "contact": "联系方式",
+    "followUs": "关注我们",
+    "rights": "保留所有权利"
+  }
+}
+

@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionalDomainDao">
+
+
+
+    <select id="queryDomainAveScore"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionalDomainAvgScoreVo">
+        select
+            vfd.id function_domain_id,
+        <if test="language == 'zh_home_top'">
+            vfd.functional_domain_name functional_domain_name,
+        </if>
+        <if test="language == 'en'">
+            vfd.functional_domain_name_en functional_domain_name,
+        </if>
+            AVG(vdt.calculate_score) industry_avg_score
+        from vehicle_functional_domain vfd
+                 LEFT JOIN vehicle_domain_tag vdtg on vdtg.functional_domain_id = vfd.id
+                 left join vehicle_domain_index vdi on vfd.id = vdi.functional_domain
+                 LEFT JOIN vehicle_domain_tree vdt on vdi.id = vdt.domain_index_id
+        where vdt.calculate_score is not NULL and  vdtg.tag_name=#{domainTagName}
+        GROUP BY vfd.id
+    </select>
+    <select id="queryDomainTagAvg"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.DomainTagAvgScoreVo">
+        SELECT vdt.tag_name as domain_tag_name, AVG(vdtr.calculate_score) as avg_score
+        FROM vehicle_domain_tag vdt
+                 left join vehicle_domain_index vdi on vdi.functional_domain = vdt.functional_domain_id
+                 left join vehicle_domain_tree vdtr on vdtr.domain_index_id = vdi.id
+        where vdt.tag_name = #{domainTagName}
+          and vdtr.calculate_score > 0
+        GROUP BY vdt.tag_name
+    </select>
+
+    <select id="queryDomainTree" resultType="com.xailab.vehicle.xaivehicledata.entity.response.FunctionalDomainResponse">
+
+        SELECT
+            a.id,
+            <if test="language=='zh_home_top'">
+                a.functional_domain_name,
+            </if>
+            <if test="language=='en'">
+                a.functional_domain_name_en functional_domain_name,
+            </if>
+            a.status
+        FROM
+        `vehicle_functional_domain` a ,
+        vehicle_domain_tag b
+                   where a.id = b.functional_domain_id and b.tag_name = "功能域表现"
+
+    </select>
+
+    <select id="queryGeneralAbilityVos"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.GeneralAbilityVo">
+        select
+            d.id vehicle_id,
+            <if test="language=='zh_home_top'">
+                CONCAT(e.brand,'-',d.vehicle_model) vehicle_name,
+                b.index_name general_ability_tag,
+            </if>
+            <if test="language=='en'">
+                CONCAT(e.brand_en,'-',d.vehicle_model) vehicle_name,
+                b.index_name_en general_ability_tag,
+            </if>
+            a.calculate_score general_ability_value
+        from
+            vehicle_domain_tree a
+        left join
+            vehicle_domain_index b
+        on
+            a.domain_index_id = b.id
+        left join
+            vehicle_functional_domain c
+        on
+            b.functional_domain = c.id
+        left join
+            vehicle_base_info d
+        on
+            d.id = a.vehicle_base_id
+        left join
+            vehicle_brand e
+        on
+            e.id = d.brand_id
+        where
+            c.id = 450679990120349699
+        and
+            d.id in
+        <foreach collection="vehicleId" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+
+    </select>
+
+    <select id="queryActionAbilityVos"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.ActionAbilityVo">
+        select
+            b.id action_description_id,
+            d.id vehicle_id,
+        <if test="language=='zh_home_top'">
+            CONCAT(e.brand,'-',d.vehicle_model) vehicle_name,
+            b.index_name action_description,
+        </if>
+        <if test="language=='en'">
+            CONCAT(e.brand_en,'-',d.vehicle_model) vehicle_name,
+            b.index_name_en action_description,
+        </if>
+            a.presentation_value action_number
+        from
+            vehicle_domain_tree a
+        left join
+            vehicle_domain_index b
+        on
+            a.domain_index_id = b.id
+        left join
+            vehicle_functional_domain c
+        on
+            b.functional_domain = c.id
+        left join
+            vehicle_base_info d
+        on
+            d.id = a.vehicle_base_id
+        left join
+            vehicle_brand e
+        on
+            e.id = d.brand_id
+        where
+            c.id = 450679990120349700
+        and
+            a.presentation_value != -1
+        and
+            d.id in
+        <foreach collection="vehicleId" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="queryGeneralAbilityAvgVos"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.GeneralAbilityVo">
+        select
+        <if test="language=='zh_home_top'">
+            b.index_name general_ability_tag,
+        </if>
+        <if test="language=='en'">
+            b.index_name_en general_ability_tag,
+        </if>
+            AVG(a.calculate_score) general_ability_value
+        from
+            vehicle_domain_tree a
+        left join
+            vehicle_domain_index b
+        on
+            a.domain_index_id = b.id
+        left join
+            vehicle_functional_domain c
+        on
+            b.functional_domain = c.id
+        left join
+            vehicle_base_info d
+        on
+            d.id = a.vehicle_base_id
+        left join
+            vehicle_brand e
+        on
+            e.id = d.brand_id
+        where
+            c.id = 450679990120349699
+        and a.presentation_value!=0
+        and a.presentation_value!=-1
+        GROUP BY
+            b.id
+    </select>
+
+    <select id="queryActionAbilityAvgVos"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.ActionAbilityVo">
+        select
+            b.id action_description_id,
+        <if test="language=='zh_home_top'">
+            b.index_name action_description,
+        </if>
+        <if test="language=='en'">
+            b.index_name_en action_description,
+        </if>
+            AVG(a.presentation_value) action_number
+        from vehicle_domain_tree a
+            left join vehicle_domain_index b
+                on a.domain_index_id = b.id
+            left join vehicle_functional_domain c
+                on b.functional_domain = c.id
+            left join vehicle_base_info d
+                on d.id = a.vehicle_base_id
+            left join vehicle_brand e
+                on e.id = d.brand_id
+        where c.id = 450679990120349700
+        and a.presentation_value!=-1
+        GROUP BY b.id
+    </select>
+
+    <select id="queryAllFunctionDomainData"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionDomainIndexVo">
+
+        SELECT
+            a.id functional_id,
+            a.functional_domain_name,
+            b.id domain_index_id,
+            b.index_name
+        FROM
+            vehicle_functional_domain a,
+            vehicle_domain_index b
+        where
+            b.functional_domain = a.id
+
+    </select>
+    <select id="queryRelevancy" resultType="com.xailab.vehicle.feign.vo.DomainRelevancyVo">
+
+        SELECT
+            b.functional_domain_name,
+            c.id function_index_id,
+            a.index_name,
+            c.test_case_content
+        FROM
+            vehicle_domain_index a,
+            vehicle_functional_domain b,
+            beeeval_open_source_case c
+        WHERE
+            a.functional_domain = b.id
+          AND
+            b.id !=450679990120349698
+	AND
+		c.domain_index_id = a.id
+
+    </select>
+
+    <select id="queryRelevancyIndex" resultType="com.xailab.vehicle.feign.vo.FunctionDomainIndexVo">
+
+        SELECT
+            b.functional_domain_name function_domain_name,
+            a.index_name domain_index_name,
+            a.id index_id
+        FROM
+            vehicle_domain_index a,
+            vehicle_functional_domain b
+        WHERE
+            a.functional_domain = b.id
+          AND
+            b.id !=450679990120349698
+
+    </select>
+
+</mapper>

@@ -1,0 +1,105 @@
+# 智能问答系统配置
+qa:
+  # LLM配置
+  llm:
+#    api-key: ${QA_LLM_API_KEY:} # 环境变量配置
+    api-key: sk-86a6602e9ae64483afe0cdea91ab546a
+    default-model: qwen-turbo
+    max-retries: 3
+    retry-interval-ms: 1000
+    request-timeout-seconds: 30
+    max-input-length: 8000
+    max-output-length: 2000
+    default-temperature: 0.7
+
+    # 模型配置
+    models:
+      turbo:
+        name: qwen-turbo
+        temperature: 0.7
+        max-input-tokens: 8000
+        max-output-tokens: 1500
+      plus:
+        name: qwen-plus
+        temperature: 0.7
+        max-input-tokens: 30000
+        max-output-tokens: 4000
+      max:
+        name: qwen-max
+        temperature: 0.8
+        max-input-tokens: 6000
+        max-output-tokens: 6000
+      long-context:
+        name: qwen-max-longcontext
+        temperature: 0.7
+        max-input-tokens: 28000
+        max-output-tokens: 2000
+
+  # 向量嵌入配置
+  embedding:
+    api-key: sk-86a6602e9ae64483afe0cdea91ab546a
+    model: text-embedding-v2
+    dimension: 1536
+    batch-size: 20
+    max-retries: 3
+    retry-interval-ms: 1000
+    request-timeout-seconds: 60
+    enable-cache: true
+    cache-expire-hours: 24
+    similarity-threshold: 0.7
+    top-k: 10
+
+  # 缓存配置
+  cache:
+    enabled: true
+    l1-size: 1000
+    l1-expire-minutes: 30
+    l2-expire-seconds: 1800
+    l3-expire-hours: 24
+
+  # 模板配置
+  template:
+    matching-threshold: 0.6
+    max-suggestions: 5
+
+# Redis配置（如果使用独立的Redis实例）
+spring:
+  data:
+    redis:
+      host: 112.124.30.149
+      port: 6379
+      password: boring123=
+      database: 1
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# 数据库配置
+#spring:
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/your_database
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# 安全配置
+#security:
+#  ignored: /api/v1/qa/**  # 如果需要公开访问
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      jmx:
+        enabled: true

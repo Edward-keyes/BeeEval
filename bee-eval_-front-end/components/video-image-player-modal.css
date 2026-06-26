@@ -1,0 +1,33 @@
+
+/* 覆盖 react-slick 的默认样式 */
+.slick-prev, .slick-next {
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+}
+
+.slick-prev:hover, .slick-next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.slick-prev:before, .slick-next:before {
+    font-size: 20px;
+    color: white;
+}
+
+.slick-dots li button:before {
+    font-size: 12px;
+    color: white;
+}
+
+.slick-dots li.slick-active button:before {
+    color: white;
+}
+.slick-prev {
+    left: 25px;
+}
+.slick-next {
+    right: 25px;
+}

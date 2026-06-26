@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestCaseMaterialDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestCaseMaterialEntity" id="testCaseMaterialInfoMap">
+        <result property="id" column="id"/>
+        <result property="testStateId" column="test_state_id"/>
+        <result property="objectName" column="object_name"/>
+        <result property="fileType" column="file_type"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+</mapper>

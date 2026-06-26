@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestPlatformVehiclePlanDetailDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestPlatformVehiclePlanDetailEntity" id="testPlatformVehiclePlanDetailMap">
+        <result property="id" column="id"/>
+        <result property="planDetailName" column="plan_detail_name"/>
+        <result property="testPlanId" column="test_plan_id"/>
+    </resultMap>
+
+
+</mapper>

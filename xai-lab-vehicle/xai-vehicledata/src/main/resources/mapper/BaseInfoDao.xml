@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.BaseInfoDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.BaseInfoEntity" id="baseInfoMap">
+        <result property="id" column="id"/>
+        <result property="brandId" column="brand_id"/>
+        <result property="vehicleModel" column="vehicle_model"/>
+        <result property="vehicleVersion" column="vehicle_version"/>
+        <result property="vehiclePicture" column="vehicle_picture"/>
+        <result property="timeToMarket" column="time_to_market"/>
+        <result property="vehicleSystemVersion" column="vehicle_system_version"/>
+        <result property="createDate" column="create_date"/>
+        <result property="updateDate" column="update_date"/>
+        <result property="status" column="status"/>
+        <result property="isDelete" column="is_delete"/>
+    </resultMap>
+
+    <select id="queryAllVehicle" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleInfoVo">
+        SELECT d.id,
+               <if test="language=='en'">
+                   CONCAT(e.brand_en,"-",d.vehicle_model) brand_model,
+                   d.vehicle_version_en vehicle_version,
+               </if>
+                <if test="language=='zh_home_top'">
+                   CONCAT(e.brand,"-",d.vehicle_model) brand_model,
+                    d.vehicle_version,
+                </if>
+               d.test_date,
+               d.vehicle_system_version,
+               d.status,
+               d.vehicle_type
+        FROM `vehicle_base_info` d , vehicle_brand e where e.id=d.brand_id
+    </select>
+
+    <select id="queryAllVehicleDetailInfo"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleDetailInfoVo">
+        select
+            h.id,
+            <if test="language == 'en' ">
+                CONCAT(g.brand_en,"-",h.vehicle_model) vehicle_name,
+                h.vehicle_version_en vehicle_version,
+                h.energy_type_en energy_type,
+                h.chip_information_en chip_information,
+            </if>
+            <if test="language == 'zh_home_top' ">
+                CONCAT(g.brand,"-",h.vehicle_model) vehicle_name,
+                h.vehicle_version,
+                h.energy_type,
+                h.chip_information,
+            </if>
+            h.vehicle_picture,
+            h.vehicle_system_version,
+            h.test_date,
+            h.time_to_market,
+            h.endurance_mileage,
+            h.model_name,
+            h.status
+        FROM
+            vehicle_base_info h
+                left join
+            vehicle_brand g
+            on
+                h.brand_id = g.id
+    </select>
+
+    <select id="queryVehicleInfoByVehicleId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleDetailInfoVo">
+
+        select
+            h.id,
+            <if test="language=='en'">
+                CONCAT(g.brand_en,"-",h.vehicle_model) vehicle_name,
+                h.vehicle_version_en vehicle_version,
+                h.energy_type_en energy_type,
+                h.chip_information_en chip_information,
+            </if>
+            <if test="language=='zh_home_top'">
+                CONCAT(g.brand,"-",h.vehicle_model) vehicle_name,
+                h.vehicle_version,
+                h.energy_type,
+                h.chip_information,
+            </if>
+            h.vehicle_picture,
+            h.vehicle_system_version,
+            h.test_date,
+            h.time_to_market,
+            h.endurance_mileage,
+            h.model_name,
+            h.chip_information
+        FROM
+            vehicle_base_info h
+                left join
+            vehicle_brand g
+            on
+                h.brand_id = g.id
+        where
+            h.id = #{id}
+    </select>
+
+
+    <select id="queryAllVehicleByIds" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleInfoVo">
+        SELECT d.id,
+               CONCAT(e.brand, "-", d.vehicle_model) brand_model,
+               d.test_date,
+               d.vehicle_version,
+               d.vehicle_system_version
+        FROM `vehicle_base_info` d,
+             vehicle_brand e
+        where e.id = d.brand_id and d.id in #{ids}
+    </select>
+
+    <select id="queryVehicleInfoAndCountScore"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleInfoContScoreVo">
+        SELECT
+        <if test="language == 'zh_home_top'">
+            CONCAT(vb.brand, '-', vbi.vehicle_model) AS vehicle_model_info,
+        </if>
+        <if test="language == 'en'">
+            CONCAT(vb.brand_en, '-', vbi.vehicle_model) AS vehicle_model_info,
+        </if>
+        vbi.id id,
+        vbi.vehicle_system_version as vehicle_system_version,
+        vbi.test_date as test_date,
+        AVG(vdt.calculate_score) AS avg_score
+        FROM vehicle_base_info vbi
+        LEFT JOIN
+        vehicle_brand vb ON vbi.brand_id = vb.id
+        LEFT JOIN
+        vehicle_domain_tree vdt ON vdt.vehicle_base_id = vbi.id
+        LEFT JOIN
+        vehicle_domain_index vdi ON vdi.id = vdt.domain_index_id
+        left join vehicle_functional_domain vfd on vfd.id = vdi.functional_domain
+        LEFT JOIN vehicle_domain_tag vdtg on vdtg.functional_domain_id = vfd.id
+        WHERE
+        vdi.functional_domain = #{functionDomainId}
+        <if test="brandInfoIds!= null and brandInfoIds.size() > 0">
+            AND  vbi.id IN
+        <foreach collection="brandInfoIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          </if>
+
+        and vdtg.tag_name = #{domainTagName}
+        GROUP BY vbi.id,
+        <if test="language == 'zh_home_top'">
+            vb.brand,
+        </if>
+        <if test="language == 'en'">
+            vb.brand_en,
+        </if>
+            vbi.vehicle_model,vbi.vehicle_system_version,vbi.test_date;
+    </select>
+
+
+
+    <select id="queryVehicleInfoAndCountScoreByTag"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleInfoContScoreVo">
+        SELECT
+            vbi.id ,
+            vbi.vehicle_system_version as vehicle_system_version,
+            vbi.test_date as test_date,
+            CONCAT(vb.brand, '-', vbi.vehicle_model) AS vehicle_model_info,
+            AVG(vdt.calculate_score) AS avg_score
+        FROM
+            vehicle_base_info vbi
+                LEFT JOIN
+            vehicle_brand vb ON vbi.brand_id = vb.id
+                LEFT JOIN
+            vehicle_domain_tree vdt ON vdt.vehicle_base_id = vbi.id
+                LEFT JOIN
+            vehicle_domain_index vdi ON vdi.id = vdt.domain_index_id
+                LEFT JOIN
+            vehicle_domain_tag vdtg on vdtg.functional_domain_id = vdi.functional_domain
+        WHERE vdtg.tag_name =#{domainTagName}
+          and vdt.calculate_score>0
+        <if test="brandInfoIds!= null and brandInfoIds.size() > 0">
+          and vbi.id IN
+
+            <foreach collection="brandInfoIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY
+            vbi.id, vb.brand, vbi.vehicle_model,vbi.vehicle_system_version,vbi.test_date;
+
+    </select>
+
+
+
+    <select id="queryVehicleInfoAndCountScoreByIndex"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleInfoContScoreVo">
+        SELECT
+            <if test="language == 'en'">
+                CONCAT(vb.brand_en, '-', vbi.vehicle_model) AS vehicle_model_info,
+            </if>
+            <if test="language == 'zh_home_top'">
+                CONCAT(vb.brand, '-', vbi.vehicle_model) AS vehicle_model_info,
+            </if>
+            vbi.id ,
+            vbi.vehicle_system_version as vehicle_system_version,
+            vbi.test_date as test_date,
+            AVG(vdt.presentation_value) AS avg_score
+        FROM
+            vehicle_base_info vbi
+                LEFT JOIN
+            vehicle_brand vb ON vbi.brand_id = vb.id
+                LEFT JOIN
+            vehicle_domain_tree vdt ON vdt.vehicle_base_id = vbi.id
+                LEFT JOIN
+            vehicle_domain_index vdi ON vdi.id = vdt.domain_index_id
+        WHERE
+            vdi.id = #{domainIndexId}
+          and vdt.presentation_value>0
+        <if test="brandInfoIds!= null and brandInfoIds.size() > 0">
+              and vbi.id IN
+            <foreach collection="brandInfoIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY
+            vbi.id,
+            <if test="language == 'zh_home_top'">
+            vb.brand,
+            </if>
+            <if test="language == 'en'">
+            vb.brand_en,
+            </if>
+
+            vbi.vehicle_model,vbi.vehicle_system_version,vbi.test_date;
+
+    </select>
+
+    <select id="queryBrandVehicleVersion"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.BrandVehicleSystemVo">
+
+        select CONCAT(b.brand,'-',a.vehicle_model,'-',a.vehicle_system_version) vehicle_name,a.id vehicle_id
+        from vehicle_base_info a
+                 left join
+             vehicle_brand b on a.brand_id = b.id
+        WHERE
+            b.brand IS NOT NULL
+          AND a.vehicle_model IS NOT NULL
+          AND a.vehicle_system_version IS NOT NULL;
+
+    </select>
+
+    <select id="queryBrandVehicleEnVersion"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.BrandVehicleSystemVo">
+        select CONCAT(b.brand_en,'-',a.vehicle_model,'-',a.vehicle_system_version) vehicle_name,a.id vehicle_id
+        from vehicle_base_info a
+                 left join
+             vehicle_brand b on a.brand_id = b.id
+        WHERE
+            b.brand IS NOT NULL
+          AND a.vehicle_model IS NOT NULL
+          AND a.vehicle_system_version IS NOT NULL;
+    </select>
+
+    <select id="queryAllVehicleConutThreeTag"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleConutThreeTagVo">
+        select
+        <if test="language == 'zh_home_top'">
+            CONCAT(f.brand,"-",e.vehicle_model) vehicle_name
+        </if>
+        <if test="language == 'en'">
+            CONCAT(f.brand_en,"-",e.vehicle_model) vehicle_name
+        </if>
+        ,count(a.vehicle_id) counta
+        from vehicle_function_tree a
+        left join
+        vehicle_function_three_tag b on
+        a.function_three_tag_id = b.id
+        left join vehicle_function_two_tag c
+        on c.id = b.function_two_tag_id
+        left join vehicle_function_one_tag d ON
+        d.id = c.function_one_tag_id left JOIN
+        vehicle_base_info e ON
+        e.id = a.vehicle_id left JOIN
+        vehicle_brand f ON
+        f.id = e.brand_id
+        where
+        a.function_list != 4 and a.function_list != 0
+        AND d.id != 456422482807619584
+        GROUP BY a.vehicle_id
+        <if test="language == 'zh_home_top'">
+            ,f.brand
+        </if>
+        <if test="language == 'en'">
+            ,f.brand_en
+        </if>
+        ,e.vehicle_model
+    </select>
+
+</mapper>

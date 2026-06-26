@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestPlatformVehicleTestCaseDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestPlatformVehicleTestCaseEntity" id="testPlatformVehicleTestCaseMap">
+        <result property="id" column="id"/>
+        <result property="testcaseContent" column="testcase_content"/>
+        <result property="primaryMetric" column="primary_metric"/>
+        <result property="secondaryMetric" column="secondary_metric"/>
+        <result property="tertiaryMetric" column="tertiary_metric"/>
+        <result property="functionId" column="function_id"/>
+        <result property="scenarioId" column="scenario_id"/>
+        <result property="scenarioTask" column="scenario_task"/>
+        <result property="taskDetail" column="task_detail"/>
+        <result property="scoringMethod" column="scoring_method"/>
+        <result property="scoringCriteria" column="scoring_criteria"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <select id="selectTestCaseByPage"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestPlatformTestCasePageVo">
+        select tc.*, AVG(ts.score) as industry_average, ROUND(VAR_SAMP(ts.score),2) as varianceValue
+        from test_case tc
+        left join test_state ts on tc.id = ts.testcase_id and ts.test_status = 1
+        where 1=1
+          and tc.scenario_id!=6
+        <if test="query.functionId != null">
+            AND tc.function_id = #{query.functionId}
+        </if>
+        <if test="query.testcaseContent != null">
+            and tc.testcase_content LIKE CONCAT("%", #{query.testcaseContent}, "%")
+        </if>
+        GROUP by tc.id
+        <if test="query.varianceOperator !=null and query.varianceValue !=null">
+            HAVING  varianceValue
+            <choose>
+                <when test="query.varianceOperator == 'ge'"> >= truncate(#{query.varianceValue},2) </when>
+                <when test="query.varianceOperator == 'le'"> &lt;= truncate(#{query.varianceValue},2) </when>
+                <when test="query.varianceOperator == 'gt'"> > truncate(#{query.varianceValue},2) </when>
+                <when test="query.varianceOperator == 'lt'"> &lt; truncate(#{query.varianceValue},2) </when>
+                <otherwise> = truncate(#{query.varianceValue},2) </otherwise>
+            </choose>
+
+        </if>
+    </select>
+    <select id="selectVehicleCore"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestPlatformVehicleCorePageVo">
+        SELECT v.id as vehicle_id, v.vehicle_name, v.infotainment_software_version, ts.score,ts.video_name as state_video_name
+        FROM test_case tc
+        left join test_state ts on tc.id = ts.testcase_id
+        left join test_record tr on tr.id = ts.record_id
+        left join vehicle v on tr.vehicle_id = v.id
+        where ts.test_status = 1
+        and ts.testcase_id = #{testCaseId}
+        <if test="vehicleIds !=null and vehicleIds.size()>0">
+            and v.id IN
+            <foreach collection="vehicleIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+    <select id="selectVehicleVariance" resultType="java.lang.Double">
+        SELECT VAR_POP(ts.score) as variance_value
+        FROM test_case tc
+                 left join test_state ts on tc.id = ts.testcase_id
+                 left join test_record tr on tr.id = ts.record_id
+                 left join vehicle v on tr.vehicle_id = v.id
+        where ts.test_status = 1
+          and tc.id = #{testCaseId}
+        <if test="vehicleIds !=null and vehicleIds.size()>0">
+            and v.id IN
+            <foreach collection="vehicleIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY tc.id;
+    </select>
+
+
+    <select id="selectFunctionTreeTag"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestPlatformFunctionTreeVo">
+        select DISTINCT tc.task_detail,ts.function_evaluate,ts.data_state
+        from test_case tc
+        left join function_tree_state ts
+            on tc.task_detail = ts.task_detail
+            and ts.record_id=#{testRecordId}
+            and ts.deleted = 0
+        where tc.scenario_id = #{scenarioId}
+        <if test="type !=null ">
+            and tc.task_detail LIKE CONCAT(#{type}, "%")
+        </if>
+        <if test="functionId != null">
+            AND tc.function_id = #{functionId}
+        </if>
+        <if test="functionEvaluate !=null and functionEvaluate.equals('na')">
+            and (ts.function_evaluate = #{functionEvaluate} or ts.function_evaluate IS NULL)
+        </if>
+        <if test="functionEvaluate !=null and !functionEvaluate.equals('na')">
+            and ts.function_evaluate = #{functionEvaluate}
+        </if>
+        <if test="dataState !=null and dataState== 0">
+            and (ts.data_state = #{dataState} or ts.data_state IS NULL )
+        </if>
+        <if test="dataState !=null and dataState!= 0">
+            and ts.data_state = #{dataState}
+        </if>
+        <if test="testCaseId !=null">
+            and tc.id = #{testCaseId}
+        </if>
+    </select>
+    <select id="selectTreeCaseList"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.FunctionTreeCaseVo">
+        select tc.*,ts.material_state,ts.test_case_rate
+        from test_case tc
+        left join test_state ts on ts.testcase_id = tc.id and ts.record_id=#{testRecordId}
+        where tc.scenario_id = #{scenarioId}
+        and tc.task_detail = #{taskDetail}
+        <if test="functionId !=null">
+            and tc.function_id = #{functionId}
+        </if>
+        <if test="scenarioTask !=null">
+            and tc.scenario_task = #{scenarioTask}
+        </if>
+    </select>
+    <select id="findMaxScenarioTask" resultType="java.lang.String">
+        select DISTINCT Max(scenario_task) from test_case where scenario_id = #{scenarioId} and  scenario_task LIKE concat(#{firstly},"%")
+    </select>
+    <select id="findMaxTaskDetail" resultType="java.lang.String">
+        select DISTINCT Max(task_detail) from test_case where scenario_id = #{scenarioId} and task_detail LIKE concat(#{firstly},"%")
+    </select>
+
+
+    <select id="selectFunctionTreeTagList"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestPlatformFunctionTreeVo">
+        select DISTINCT tc.task_detail
+        from test_case tc
+        where tc.scenario_id = #{scenarioId}
+    </select>
+
+    <select id="caseQueryByFunctionId"
+            resultType="com.xailab.vehicle.feign.vo.TestCaseByFunctionIdVo">
+        SELECT id,testcase_content,task_detail
+        FROM `test_case` where scenario_id = 6
+        AND task_detail = #{functionId}
+    </select>
+    <select id="caseQuery" resultType="com.xailab.vehicle.feign.vo.TestCaseByFunctionIdVo">
+        SELECT id,testcase_content,task_detail
+        FROM `test_case` where scenario_id = 6
+    </select>
+
+    <select id="queryTestCaseContent"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestCaseContentVo">
+        SELECT
+            a.id,
+            a.testcase_content,
+            a.task_detail
+        FROM
+            `test_case` a
+        WHERE
+            a.scenario_id=6
+    </select>
+    <select id="selectIdsByTaskDetail" resultType="java.lang.Integer">
+        select id from test_case where task_detail=#{taskDetail}
+    </select>
+
+    <select id="queryRelevancy" resultType="com.xailab.vehicle.operation.testplatform.vo.CaseRelevancyVo">
+        SELECT
+            a.plan_detail_name,
+            b.sub_id,
+            b.tertiary_metric,
+            b.testcase_content
+        FROM
+            plan_detail a,
+            test_case b
+        WHERE
+            a.id = b.function_id
+          AND
+            b.scenario_id !=6
+    </select>
+
+    <select id="queryOpenSourceSynchronization"
+            resultType="com.xailab.vehicle.feign.vo.OpenSourceVo">
+
+        SELECT
+            a.beeeval_case_id,
+            b.score
+        FROM
+            pcafe_relevancy_domain_index a,
+            test_state b,
+            vehicle c,
+            test_record e
+        WHERE
+            a.case_id = b.testcase_id
+          AND
+            c.id = e.vehicle_id
+          AND
+            e.id = b.record_id
+          AND
+            e.id = #{recordId}
+
+    </select>
+    <select id="queryDomainCase" resultType="com.xailab.vehicle.operation.testplatform.vo.DomainCaseVo">
+        select
+            b.plan_detail_name function_domain,
+            a.tertiary_metric domain_index
+        FROM
+            test_case a,
+            plan_detail b
+        WHERE
+            a.scenario_id !=6
+AND
+a.function_id = b.id
+        GROUP BY
+            b.plan_detail_name,
+            a.tertiary_metric
+    </select>
+
+</mapper>

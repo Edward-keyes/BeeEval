@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.DomainIndexDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.DomainIndexEntity" id="BaseResultMap">
+        <result property="id" column="id"/>
+        <result property="functionalDomain" column="functional_domain"/>
+        <result property="indexName" column="index_name"/>
+    </resultMap>
+
+    <select id="findIdByFunctionalDomainAndIndexName" resultType="java.lang.Long">
+        select
+        id
+        from vehicle_domain_index
+        <where>
+            <if test="functionalDomain != null">
+                functional_domain = #{functionalDomain,jdbcType=NUMERIC}
+            </if>
+            <if test="indexName != null and indexName != ''">
+                AND index_name = #{indexName,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+
+
+    <select id="findDomainAvgScore"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.DomainIndexAvgScoreVo">
+        select
+            vdi.id do_main_index_id,
+            <if test="language=='en'">
+                vdi.index_name_en do_main_index_name,
+                vdi.definition_en indexDetail,
+            </if>
+            <if test="language=='zh_home_top'">
+                vdi.index_name do_main_index_name,
+                vdi.definition indexDetail,
+            </if>
+            AVG(vdt.presentation_value) do_main_index_avg_score
+        from vehicle_domain_index vdi
+                 left join vehicle_domain_tree vdt on vdi.id = vdt.domain_index_id
+        WHERE vdi.functional_domain = #{functionalDomain}
+        GROUP BY vdi.id
+    </select>
+
+
+    <select id="findDomainVehicleInfoId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleInfoDomainIndexScoreVo">
+        SELECT vbi.id,
+               <if test="language=='en'">
+                   CONCAT(vb.brand_en, '-', vbi.vehicle_model) AS vehicle_model_info,
+               </if>
+               <if test="language=='zh_home_top'">
+                   CONCAT(vb.brand, '-', vbi.vehicle_model) AS vehicle_model_info,
+               </if>
+               AVG(vdt.presentation_value)                 AS avg_score,
+                vbi.vehicle_system_version as vehicle_system_version,
+                vbi.test_date as test_date
+        FROM vehicle_base_info vbi
+                 LEFT JOIN
+             vehicle_brand vb ON vbi.brand_id = vb.id
+                 LEFT JOIN
+             vehicle_domain_tree vdt ON vdt.vehicle_base_id = vbi.id
+                 LEFT JOIN
+             vehicle_domain_index vdi ON vdi.id = vdt.domain_index_id
+        WHERE
+        vdi.id = #{domainIndexId}
+        <if test="vehicleInfoIds!= null and vehicleInfoIds.size() > 0">
+            AND
+            vbi.id IN
+
+        <foreach collection="vehicleInfoIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          </if>
+
+        GROUP BY vbi.id,
+                 <if test="language=='en'">
+                     vb.brand_en,
+                 </if>
+                 <if test="language=='zh_home_top'">
+                     vb.brand,
+                 </if>
+                 vbi.vehicle_model,vbi.vehicle_system_version,vbi.test_date;
+    </select>
+    <select id="findDomainIndexAvgScoreByDomainTag"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.DomainIndexAvgScoreVo">
+        SELECT
+            vdi.id as do_main_index_id,
+            <if test="language=='en'">
+                vdi.index_name_en as do_main_index_name,
+            </if>
+            <if test="language=='zh_home_top'">
+                vdi.index_name as do_main_index_name,
+            </if>
+            AVG(vdtr.presentation_value) as do_main_index_avg_score
+        FROM vehicle_domain_tag vdt
+                 left join vehicle_domain_index vdi on vdi.functional_domain = vdt.functional_domain_id
+                 left join vehicle_domain_tree vdtr on vdtr.domain_index_id = vdi.id
+        where vdt.tag_name = #{domainTagName}
+          and vdtr.calculate_score > 0
+        GROUP BY vdi.id
+
+
+    </select>
+
+    <select id="getDomainIndexMap" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.DomainNameIndexVo">
+        SELECT
+            CONCAT(a.functional_domain_name, '-', v.index_name) AS domain_name,
+            v.id AS index_id
+        FROM
+            vehicle_domain_index v
+                LEFT JOIN
+            vehicle_functional_domain a
+            ON v.functional_domain = a.id
+    </select>
+
+    <select id="queryDomainIndexDetail"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.IndexDetailVo">
+
+        SELECT
+        <if test="language=='en'">
+            a.index_name_en index_name,a.definition_en detail
+        </if>
+        <if test="language=='zh_home_top'">
+            a.index_name index_name,a.definition detail
+        </if>
+        FROM `vehicle_domain_index` a , vehicle_functional_domain b
+        where a.functional_domain = b.id and b.id = #{domainId}
+
+    </select>
+</mapper>

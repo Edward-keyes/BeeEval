@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  xai-vehicle-cloud-gateway:
+    image: xainet:1.0
+    container_name: xai-vehicle-cloud-gateway
+    ports:
+      - 8080:8080
+    volumes:
+      - /work/www/xai-vehicle-cloud/xai-vehicle-cloud-gateway.jar:/app/app.jar
+  xai-vehicle-operation-manager:
+    image: xainet:1.0
+    container_name: xai-vehicle-cloud-system
+    volumes:
+      - /work/www/xai-vehicle-cloud/xai-vehicle-cloud-system.jar:/app/app.jar

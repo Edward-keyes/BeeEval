@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.VehicleTestResultAllDao">
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.VehicleTestResultAllEntity" id="vehicleTestResultAllMap">
+        <result property="id" column="id"/>
+        <result property="vehicleId" column="vehicle_id"/>
+        <result property="example" column="example"/>
+        <result property="domainFunctionId" column="domain_function_id"/>
+        <result property="functionIndexId" column="function_index_id"/>
+        <result property="score" column="score"/>
+    </resultMap>
+
+    <select id="queryVehicleScoreByVIdAndTId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.Problem">
+        SELECT
+            a.test_case_content question,
+            b.score
+        FROM
+            `beeeval_open_source_case` a,
+            beeeval_open_case_score b
+        where
+            a.id = b.case_id
+          and
+            b.vehicle_id=#{l}
+          and
+            b.three_tag_id = #{functionIndexId}
+    </select>
+</mapper> 

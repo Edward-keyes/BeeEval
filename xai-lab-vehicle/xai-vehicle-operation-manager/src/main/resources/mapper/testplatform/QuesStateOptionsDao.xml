@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.QuesStateOptionsDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.QuesStateOptionsEntity" id="quesStateOptionsMap">
+        <result property="id" column="id"/>
+        <result property="quesStateId" column="ques_state_id"/>
+        <result property="selectId" column="select_id"/>
+    </resultMap>
+    <select id="findOptionsInfo"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.QuesStateOptionInfoVO">
+        select qso.*, tqo.`options`, tqo.sort
+        from ques_state_options qso
+                 left join test_ques_options tqo on qso.select_id = tqo.id
+        where qso.ques_state_id = #{quesStateId}
+    </select>
+
+</mapper>

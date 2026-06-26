@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionThreeTagDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.FunctionThreeTagEntity" id="functionThreeTagMap">
+        <result property="id" column="id"/>
+        <result property="functionTwoTagId" column="function_two_tag_id"/>
+        <result property="tagName" column="tag_name"/>
+        <result property="tagNumber" column="tag_number"/>
+    </resultMap>
+
+    <select id="getFunctionTagList"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.response.FunctionTreeOpResponse">
+        SELECT
+            c.tag_name one_tag_name,
+            c.tag_name_en one_tag_name_en,
+            b.tag_name two_tag_name,
+            b.tag_name_en two_tag_name_en,
+            a.tag_name,
+            a.tag_name_en,
+            a.tag_number,
+            a.description,
+            a.description_en,
+            a.status,
+            a.sort
+        FROM
+            `vehicle_function_three_tag` a
+                left JOIN
+            vehicle_function_two_tag b ON a.function_two_tag_id = b.id
+                LEFT JOIN
+            vehicle_function_one_tag c ON b.function_one_tag_id = c.id
+    </select>
+
+    <select id="querySortThreeTag"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.FunctionThreeTagEntity">
+
+        select a.* FROM
+                       vehicle_function_three_tag a ,(
+                select a.function_two_tag_id two_id from
+                    vehicle_function_three_tag a
+                where a.tag_number = #{tagNumber} ) b
+        where a.function_two_tag_id = b.two_id
+
+    </select>
+    <select id="findFunctionTreeList"
+            resultType="com.xailab.vehicle.feign.pojo.response.FunctionTreeListResponse">
+        select distinct tag_name,  tag_number, description from vehicle_function_three_tag order by tag_number asc
+    </select>
+
+    <select id="getThreeTagListSynchronization"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.response.SynchronizationThreeTagResponse">
+
+        select a.id beeeval_three_id,a.tag_name,a.tag_number from vehicle_function_three_tag a
+
+    </select>
+
+    <select id="queryCaseVideo"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionTreeVideoNewVo">
+        select
+            a.description,
+            b.case_content,
+--            c.function_label,
+            d.case_options function_label,
+-- d.is_show,
+-- d.function_evaluation,
+            e.material_url,
+            e.material_type type
+        FROM
+            vehicle_function_three_tag a,
+            vehicle_function_tree c,
+            function_tree_case b,
+            function_case_vehicle d,
+            function_case_material e
+        where
+            a.id = c.function_three_tag_id
+          AND
+            c.vehicle_id = #{vehicleId}
+          AND
+            a.id = #{threeTagId}
+          AND
+            b.three_tag_id = a.tag_number
+          AND
+            e.function_tree_case_id = b.id
+          And
+            e.vehicle_id = c.vehicle_id
+          AND
+            d.case_id = b.id
+          AND
+            d.vehicle_id = c.vehicle_id
+        GROUP BY
+            a.description,
+            b.case_content,
+--            c.function_label,
+            d.case_options,
+-- d.is_show,
+-- d.function_evaluation,
+            e.material_url,
+            e.material_type
+    </select>
+
+    <select id="queryFunctionTreePage"
+            resultType="com.xailab.vehicle.feign.pojo.treem.FunctionTreeQueryListResponse">
+        select a.tag_number, a.tag_name,a.tag_name_en, a.description, a.description_en, b.function_list
+        from vehicle_function_three_tag a
+                 left join vehicle_function_tree b
+                           on a.id = b.function_three_tag_id
+                               and b.vehicle_id = #{vehicleId}
+        where
+            1=1
+            <if test="tagNumber != null and tagNumber != ''">
+               and  a.tag_number= #{tagNumber}
+            </if>
+            <if test="tagName != null and tagName != ''">
+                and a.tag_name like concat('%',#{tagName},'%')
+            </if>
+
+    </select>
+
+
+</mapper>

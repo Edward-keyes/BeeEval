@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionTreeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.FunctionTreeEntity" id="functionTreeMap">
+        <result property="id" column="id"/>
+        <result property="vehicleId" column="vehicle_id"/>
+        <result property="functionThreeTagId" column="function_three_tag_id"/>
+        <result property="functionList" column="function_list"/>
+        <result property="labelExplain" column="label_explain"/>
+        <result property="functionLabel" column="function_label"/>
+        <result property="testDate" column="test_date"/>
+        <result property="vehicleSystemVersion" column="vehicle_system_version"/>
+    </resultMap>
+
+    <select id="queryPenetrationRateByFunctionTreeId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.PenetrationRateVO">
+
+        SELECT
+            a.id AS one_id,
+            <if test="language == 'en'">
+                a.tag_name_en AS one_tag_name,
+                c.tag_name_en AS three_tag_name,
+            </if>
+            <if test="language == 'zh_home_top'">
+                a.tag_name AS one_tag_name,
+                c.tag_name AS three_tag_name,
+            </if>
+            c.id AS three_id,
+            COUNT(CASE WHEN d.function_list != 4 THEN c.id END) AS count
+        FROM
+            vehicle_function_one_tag a
+            LEFT JOIN
+            vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+            LEFT JOIN
+            vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+            LEFT JOIN
+            vehicle_function_tree d ON d.function_three_tag_id = c.id
+                                       LEFT JOIN
+            vehicle_base_info e on e.id = d.vehicle_id
+        where e.status = 1
+        <if test="vehicleIds != null and vehicleIds.size() > 0">
+        and
+            e.id in
+            <foreach collection="vehicleIds" item="i" open="(" separator="," close=")">
+                #{i}
+            </foreach>
+        </if>
+                                       GROUP BY
+            c.id, c.tag_name, a.id, a.tag_name
+        <if test=" ids != null and ids.size() > 0">
+            having
+                one_id IN
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryFirstLevelTagRatioByVehicleIds"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FirstLevelTagRatioVo">
+        SELECT
+            <if test="language == 'en'">
+                CONCAT(g.brand_en,"-",h.vehicle_model) brand_model,
+                a.tag_name_en one_tag_name,
+            </if>
+            <if test="language == 'zh_home_top'">
+                CONCAT(g.brand,"-",h.vehicle_model) brand_model,
+                a.tag_name one_tag_name,
+            </if>
+            d.vehicle_id,
+            a.id one_id,
+            count(CASE WHEN d.function_list != 4 THEN d.function_three_tag_id END ) as count,
+		f.three_count
+        FROM
+            vehicle_function_one_tag a left join
+            (SELECT
+            a.id one_id,
+            COUNT(c.id) three_count
+            FROM
+            vehicle_function_one_tag a
+            LEFT JOIN
+            vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+            LEFT JOIN
+            vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+            group by
+            a.id) f on f.one_id = a.id
+
+            LEFT JOIN
+            vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+            LEFT JOIN
+            vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+            LEFT JOIN
+            vehicle_function_tree d ON d.function_three_tag_id = c.id
+            left JOIN
+            vehicle_base_info h on h.id = d.vehicle_id
+            left join
+            vehicle_brand g on h.brand_id = g.id
+                    where a.status = 1
+        <if test="vehicleIds != null and vehicleIds.size() > 0">
+            and
+            h.id in
+            <foreach collection="vehicleIds" item="i" open="(" separator="," close=")">
+                #{i}
+            </foreach>
+        </if>
+        GROUP BY
+            d.vehicle_id,a.id,f.three_count,
+            <if test="language == 'en'">
+                g.brand_en,
+            </if>
+            <if test="language == 'zh_home_top'">
+                g.brand,
+            </if>
+            h.vehicle_model
+
+        <if test=" ids != null and ids.size() > 0">
+            having
+            vehicle_id in
+            <foreach collection="ids" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryVehicleFunctionGradeByFunctionTreeIdsAndVehicleIds"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VehicleFunctionGradeVo">
+
+        SELECT
+            <if test="language=='en'">
+                a.tag_name_en one_tag_name,
+                b.tag_name_en two_tag_name,
+                c.tag_name_en three_tag_name,
+                CONCAT(g.brand_en,"-",h.vehicle_model) vehicle_name,
+            </if>
+            <if test="language=='zh_home_top'">
+                a.tag_name one_tag_name,
+                b.tag_name two_tag_name,
+                c.tag_name three_tag_name,
+                CONCAT(g.brand,"-",h.vehicle_model) vehicle_name,
+            </if>
+            a.id one_tag_id,
+            d.function_list,
+            b.id two_tag_id,
+            c.id three_tag_id,
+            h.id vehicle_id
+        FROM
+            vehicle_function_one_tag a
+                LEFT JOIN
+            vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+                LEFT JOIN
+            vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+                LEFT JOIN
+            vehicle_function_tree d ON d.function_three_tag_id = c.id
+                left JOIN
+            vehicle_base_info h on h.id = d.vehicle_id
+                left join
+            vehicle_brand g on h.brand_id = g.id
+        where
+            a.status = 1
+<!--        <if test="(oneTagIds != null and oneTagIds.size() > 0)or(vehicleIds != null and vehicleIds.size() > 0)">-->
+<!--            where-->
+<!--        </if>-->
+
+        <if test=" oneTagIds != null and oneTagIds.size() > 0 and oneTagIds !=&quot;&quot;and oneTagIds !=&apos;&apos;">
+            and
+            a.id in
+            <foreach collection="oneTagIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+<!--        <if test=" oneTagIds != null and oneTagIds.size() > 0 and vehicleIds != null and vehicleIds.size() > 0">-->
+<!--            and-->
+<!--        </if>-->
+
+        <if test="vehicleIds != null and vehicleIds.size() > 0 and vehicleIds !=&quot;&quot; and vehicleIds !=&apos;&apos;">
+            and
+            d.vehicle_id in
+            <foreach collection="vehicleIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+    </select>
+
+    <select id="queryVideoOrPictureByThreeTagIdAndVehicleId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FileUrlVo">
+
+        SELECT
+            <if test="language == 'zh_home_top'">
+                b.description,
+                a.function_label,
+            </if>
+        <if test="language == 'en'">
+            b.description_en description,
+            a.function_label_en function_label,
+        </if>
+            a.video_number,
+            a.picture_number,
+            a.video_str srt_url
+        FROM
+            `vehicle_function_tree` a,
+            vehicle_function_three_tag b
+        where
+            a.vehicle_id = #{vehicleId}
+          and
+            a.function_three_tag_id = #{threeTagId}
+          and
+            b.id = a.function_three_tag_id
+
+    </select>
+
+    <select id="queryFunctionRichnessRatioByVehicleId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionRichnessRatioVo">
+
+        SELECT
+            <if test="language == 'zh_home_top'">
+                CONCAT(g.brand,"-",h.vehicle_model) brand_model,
+                a.tag_name function_name,
+            </if>
+            <if test="language == 'en'">
+                CONCAT(g.brand_en,"-",h.vehicle_model) brand_model,
+                a.tag_name_en function_name,
+            </if>
+            d.vehicle_id,
+            a.id one_id,
+            count(CASE WHEN d.function_list != 4 THEN d.function_three_tag_id END ) as count,
+		f.three_count
+        FROM
+            vehicle_function_one_tag a left join
+            (SELECT
+            a.id one_id,
+            COUNT(c.id) three_count
+            FROM
+            vehicle_function_one_tag a
+            LEFT JOIN
+            vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+            LEFT JOIN
+            vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+            group by
+            a.id) f on f.one_id = a.id
+
+            LEFT JOIN
+            vehicle_function_two_tag b ON a.id = b.function_one_tag_id
+            LEFT JOIN
+            vehicle_function_three_tag c ON b.id = c.function_two_tag_id
+            LEFT JOIN
+            vehicle_function_tree d ON d.function_three_tag_id = c.id
+            left JOIN
+            vehicle_base_info h on h.id = d.vehicle_id
+            left join
+            vehicle_brand g on h.brand_id = g.id
+        where a.status = 1
+        GROUP BY
+            d.vehicle_id,a.id,f.three_count,
+        <if test="language == 'zh_home_top'">
+            g.brand
+        </if>
+        <if test="language == 'en'">
+            g.brand_en
+        </if>
+            ,h.vehicle_model
+        HAVING
+            vehicle_id in (#{id})
+
+    </select>
+
+    <select id="queryPerceptionAbilityByVehicleId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.PerceptionAbilityVo">
+
+        select
+            <if test="language == 'zh_home_top'">
+                c.tag_name perception_ability_name ,
+                b.tag_name three_tag_name,
+                CONCAT(f.brand,'-',e.vehicle_model) vehicle_name,
+            </if>
+            <if test="language == 'en'">
+                c.tag_name_en perception_ability_name ,
+                b.tag_name_en three_tag_name,
+                CONCAT(f.brand_en,'-',e.vehicle_model) vehicle_name,
+            </if>
+            a.function_list is_have,
+            a.vehicle_id
+        FROM
+            vehicle_function_tree a
+                LEFT JOIN
+            vehicle_function_three_tag b on a.function_three_tag_id = b.id
+                LEFT JOIN
+            vehicle_function_two_tag c on b.function_two_tag_id = c.id
+                LEFT JOIN
+            vehicle_function_one_tag d on c.function_one_tag_id = d.id
+                left JOIN
+            vehicle_base_info e on e.id = a.vehicle_id
+                LEFT JOIN
+            vehicle_brand f on e.brand_id = f.id
+        where d.tag_name = "感知能力"
+
+        <if test=" id != null and id.size() > 0">
+            and
+            vehicle_id in
+            <foreach collection="id" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+    </select>
+
+
+</mapper>

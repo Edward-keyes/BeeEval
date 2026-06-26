@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TertiaryMetricWeightDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TertiaryMetricWeightEntity" id="tertiaryMetricWeightMap">
+        <result property="id" column="id"/>
+        <result property="tertiaryMetric" column="tertiary_metric"/>
+        <result property="weight" column="weight"/>
+        <result property="type" column="type"/>
+    </resultMap>
+
+    <select id="queryTestcaseContentByVehicleId"
+            resultType="com.xailab.vehicle.feign.pojo.response.QueryVehicleTestcaseResponse">
+
+        SELECT
+        v.vehicle_name,
+        pd.plan_detail_name,
+        tc.tertiary_metric,
+        tc.testcase_content,
+        ts.id score_id,
+        tc.id case_id,
+        ts.score,
+        ts.is_successful
+        FROM test_state ts
+        JOIN test_case tc ON ts.testcase_id = tc.id
+        JOIN test_record tr ON ts.record_id = tr.id
+        JOIN plan_detail pd on tc.function_id = pd.id
+        JOIN vehicle v on v.id = tr.vehicle_id
+        WHERE (ts.is_successful = 1
+        or ts.is_successful = 0)
+        and tr.id in
+            <foreach item="vehicleId" open="(" separator="," close=")" collection="vehicleId">
+                #{vehicleId}
+            </foreach>
+        and pd.id &lt; 8
+        and tc.tertiary_metric != "功能树检查"
+        GROUP BY v.vehicle_name, pd.plan_detail_name, tc.tertiary_metric,tc.testcase_content,ts.id,ts.score,ts.is_successful
+        ORDER BY v.vehicle_name, pd.plan_detail_name, tc.tertiary_metric,tc.testcase_content,ts.id,ts.score,ts.is_successful;
+
+    </select>
+
+    <select id="queryTertiaryMetricWeight"
+            resultType="com.xailab.vehicle.operation.testplatform.pojo.response.TertiaryMetricWeightResponse">
+
+        SELECT
+        avgs.vehicle_name,
+        avgs.function_id,
+        avgs.plan_detail_name,
+        avgs.tertiary_metric,
+        avgs.count,
+        avgs.avg_score,
+        COALESCE(w.weight, 1.0) AS weight,
+        -- 计算加权值：均分 × 权重
+        avgs.avg_score * COALESCE(w.weight, 1.0) AS weighted_score
+        FROM (
+        -- 步骤1: 计算每个车辆、问题类型下各三级指标的均分
+        SELECT
+        v.vehicle_name,
+        tc.function_id,
+        tc.tertiary_metric,
+        COUNT(ts.id) count,
+        pd.plan_detail_name,
+        AVG(ts.score) AS avg_score
+        FROM test_state ts
+        JOIN test_case tc ON ts.testcase_id = tc.id
+        JOIN test_record tr ON ts.record_id = tr.id
+        JOIN plan_detail pd on tc.function_id = pd.id
+        JOIN vehicle v on v.id = tr.vehicle_id
+        WHERE (ts.is_successful = 1
+        or ts.is_successful = 0)  -- 只统计成功的测试
+        and tr.id in
+        <foreach item="vehicleId" open="(" separator="," close=")" collection="vehicleId">
+            #{vehicleId}
+        </foreach>
+        and tc.tertiary_metric != "功能树检查"
+        and tc.function_id &lt; 7
+        and ts.score!=0
+        GROUP BY v.vehicle_name, tc.function_id, tc.tertiary_metric, pd.plan_detail_name
+        ) AS avgs
+        -- 关联权重表（严格按问题类型和三级指标匹配）
+        LEFT JOIN tertiary_metric_weight w
+        ON w.type = avgs.function_id  -- 匹配问题类型
+        AND w.tertiary_metric = avgs.tertiary_metric  -- 匹配三级指标
+
+    </select>
+
+    <select id="queryFunctionDomainScore"
+            resultType="com.xailab.vehicle.operation.testplatform.pojo.response.FunctionDomainScoreResponse">
+
+        SELECT
+        base.vehicle_name,
+        base.plan_detail_name,
+        -- 对相同问题类型ID下的所有加权值求和
+        SUM(base.weighted_score) AS 'function_domain_score'
+        FROM (
+        -- 步骤2: 将均分乘以权重
+        SELECT
+        avgs.vehicle_name,
+        avgs.function_id,
+        avgs.plan_detail_name,
+        avgs.tertiary_metric,
+        avgs.count,
+        avgs.avg_score,
+        COALESCE(w.weight, 1.0) AS weight,
+        -- 计算加权值：均分 × 权重
+        avgs.avg_score * COALESCE(w.weight, 1.0) AS weighted_score
+        FROM (
+        -- 步骤1: 计算每个车辆、问题类型下各三级指标的均分
+        SELECT
+        v.vehicle_name,
+        tc.function_id,
+        tc.tertiary_metric,
+        COUNT(ts.id) count,
+        pd.plan_detail_name,
+        AVG(ts.score) AS avg_score
+        FROM test_state ts
+        JOIN test_case tc ON ts.testcase_id = tc.id
+        JOIN test_record tr ON ts.record_id = tr.id
+        JOIN plan_detail pd on tc.function_id = pd.id
+        JOIN vehicle v on v.id = tr.vehicle_id
+        WHERE (ts.is_successful = 1
+        or ts.is_successful = 0)  -- 只统计成功的测试
+        and tr.id in
+        <foreach item="vehicleId" open="(" separator="," close=")" collection="vehicleId">
+            #{vehicleId}
+        </foreach>
+        and tc.tertiary_metric != "功能树检查"
+        and tc.function_id &lt; 7
+        and ts.score!=0
+        GROUP BY v.vehicle_name, tc.function_id, tc.tertiary_metric, pd.plan_detail_name
+        ) AS avgs
+        -- 关联权重表（严格按问题类型和三级指标匹配）
+        LEFT JOIN tertiary_metric_weight w
+        ON w.type = avgs.function_id  -- 匹配问题类型
+        AND w.tertiary_metric = avgs.tertiary_metric  -- 匹配三级指标
+        ) AS base
+        -- 步骤3: 对相同问题类型ID下的所有加权值求和
+        GROUP BY base.vehicle_name, base.function_id
+        ORDER BY base.vehicle_name, base.function_id;
+
+    </select>
+
+    <select id="queryBaseWeight" resultType="com.xailab.vehicle.operation.testplatform.vo.BaseFunctionVo">
+        -- 查看不同域下，每个三级指标均分
+        SELECT
+        avgs.vehicle_name,
+        avgs.function_id,
+        avgs.plan_detail_name index_name,
+        avgs.tertiary_metric function_name,
+        avgs.count,
+        avgs.avg_score `value`,
+        COALESCE(w.weight, 1.0) AS weight,
+        -- 计算加权值：均分 × 权重
+        avgs.avg_score * COALESCE(w.weight, 1.0) AS weighted_score
+        FROM (
+        -- 步骤1: 计算每个车辆、问题类型下各三级指标的均分
+        SELECT
+        v.vehicle_name,
+        tc.function_id,
+        tc.tertiary_metric,
+        COUNT(ts.id) count,
+        pd.plan_detail_name,
+        AVG(ts.score) AS avg_score
+        FROM test_state ts
+        JOIN test_case tc ON ts.testcase_id = tc.id
+        JOIN test_record tr ON ts.record_id = tr.id
+        JOIN plan_detail pd on tc.function_id = pd.id
+        JOIN vehicle v ON v.id = tr.vehicle_id
+        WHERE (ts.is_successful = 1
+        or ts.is_successful = 0)  -- 只统计成功的测试
+        and tr.id =
+                #{vehicleId}
+        and tc.tertiary_metric in ("自然语言理解（NLU）准确率",
+        "表达拟人度",
+        "人设鲜明度",
+        "信息提取能力",
+        "语言推理能力",
+        "跨语言理解能力",
+        "文化伦理",
+        "通识知识",
+        "安全性",
+        "跨域协作能力")
+        -- and tc.function_id > 7
+        and ts.score!=0
+        GROUP BY v.vehicle_name, tc.function_id, tc.tertiary_metric, pd.plan_detail_name
+        ) AS avgs
+        -- 关联权重表（严格按问题类型和三级指标匹配）
+        LEFT JOIN tertiary_metric_weight w
+        ON w.type = avgs.function_id  -- 匹配问题类型
+        AND w.tertiary_metric = avgs.tertiary_metric  -- 匹配三级指标
+    </select>
+
+</mapper>

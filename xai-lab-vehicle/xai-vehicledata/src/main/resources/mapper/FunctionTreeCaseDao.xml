@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionTreeCaseDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.FunctionTreeCaseEntity" id="functionTreeCaseMap">
+        <result property="id" column="id"/>
+        <result property="threeTagId" column="three_tag_id"/>
+        <result property="caseContent" column="case_content"/>
+        <result property="caseContentEn" column="case_content_en"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="queryFunctionTreeCaseList"
+            resultType="com.xailab.vehicle.feign.pojo.treem.FunctionTreeCaseResponse">
+        select c.id, c.three_tag_id, c.case_content, c.case_content_en, d.case_options, d.function_evaluation, d.is_show
+        from function_tree_case c
+                 left join function_case_vehicle d
+                           on c.id = d.case_id
+                               and d.vehicle_id = #{vehicleId}
+        where c.three_tag_id = #{tagNumber}
+    </select>
+
+
+</mapper>

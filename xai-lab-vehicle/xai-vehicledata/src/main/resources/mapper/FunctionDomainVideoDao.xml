@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.FunctionDomainVideoDao">
+
+    <select id="getBy" resultType="com.xailab.vehicle.xaivehicledata.entity.FunctionDomainVideoEntity">
+        select * from vehicle_function_domain_video
+                 where
+                     vehicle_id = #{vehicleId}
+                   and
+                     function_domain_id = #{domainId}
+                   and
+                     type = #{type}
+                   and
+                     url_name = #{name}
+                   and
+                     file_type = #{fileType}
+    </select>
+
+    <select id="selectListQ" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionVideoListVo">
+        SELECT
+        a.id,
+            <if test="language=='zh_home_top'">
+                CONCAT(c.brand,"-",b.vehicle_model,"-",d.functional_domain_name) name,
+                a.title,
+            </if>
+            <if test="language=='en'">
+                CONCAT(c.brand_en,"-",b.vehicle_model,"-",d.functional_domain_name_en) name,
+                a.title_en title,
+            </if>
+            a.url_name,
+            a.file_type,
+            a.type
+        FROM `vehicle_function_domain_video` a left JOIN
+             vehicle_base_info b on b.id = a.vehicle_id LEFT JOIN
+             vehicle_brand c on b.brand_id = c.id LEFT JOIN
+             vehicle_functional_domain d on d.id = a.function_domain_id
+        where a.type = #{i} and a.vehicle_id = #{vehicleId} and a.status != 0
+        ORDER BY a.id
+    </select>
+
+    <select id="selectListQWithPagination" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionVideoListVo">
+        SELECT
+        a.id,
+            <if test="language=='zh_home_top'">
+                CONCAT(c.brand,"-",b.vehicle_model,"-",d.functional_domain_name) name,
+                a.title,
+            </if>
+            <if test="language=='en'">
+                CONCAT(c.brand_en,"-",b.vehicle_model,"-",d.functional_domain_name_en) name,
+                a.title_en title,
+            </if>
+            a.url_name,
+            a.file_type,
+            a.type
+        FROM `vehicle_function_domain_video` a left JOIN
+             vehicle_base_info b on b.id = a.vehicle_id LEFT JOIN
+             vehicle_brand c on b.brand_id = c.id LEFT JOIN
+             vehicle_functional_domain d on d.id = a.function_domain_id
+        where a.type = #{i} and a.vehicle_id = #{vehicleId} and a.status != 0
+        ORDER BY a.id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="queryVideoNumberByVehicleIdAndFunctionDomainId"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.vo.VideoNumberVo">
+
+        SELECT SUBSTR(url_name, 1, LENGTH(url_name) - 18) number,id FROM vehicle_function_domain_video WHERE
+            function_domain_id = #{functionDomainId} AND
+            vehicle_id = #{vehicleId} and
+            file_type = 0;
+
+    </select>
+
+    <select id="selectListNewQ" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionalVideoNewVo">
+        SELECT
+        a.id,
+            <if test="language=='zh_home_top'">
+                CONCAT(c.brand,"-",b.vehicle_model) name,
+                d.functional_domain_name functionalDomain,
+                e.index_name threeTag,
+                a.title,
+                a.description,
+                a.task_type,
+            </if>
+            <if test="language=='en'">
+                CONCAT(c.brand_en,"-",b.vehicle_model) name,
+                d.functional_domain_name_en functionalDomain,
+                e.index_name_en threeTag,
+                a.title_en title,
+                a.description_en description,
+                a.task_type_en taskType,
+            </if>
+        a.url_name videoUrl,
+        a.file_type,
+        a.type
+        FROM `vehicle_function_domain_video` a left JOIN
+        vehicle_base_info b on b.id = a.vehicle_id LEFT JOIN
+        vehicle_domain_index e on a.function_domain_index_id = e.id left join
+        vehicle_brand c on b.brand_id = c.id LEFT JOIN
+        vehicle_functional_domain d on d.id = a.function_domain_id
+        where a.type = #{i} and a.vehicle_id = #{vehicleId}
+        ORDER BY a.id
+    </select>
+
+    <select id="selectListNewQWithPagination" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.FunctionalVideoNewVo">
+        SELECT
+        a.id,
+            <if test="language=='zh_home_top'">
+                CONCAT(c.brand,"-",b.vehicle_model) name,
+                d.functional_domain_name functionalDomain,
+                e.index_name threeTag,
+                a.title,
+                a.description,
+                a.task_type,
+            </if>
+            <if test="language=='en'">
+                CONCAT(c.brand_en,"-",b.vehicle_model) name,
+                d.functional_domain_name_en functionalDomain,
+                e.index_name_en threeTag,
+                a.title_en title,
+                a.description_en description,
+                a.task_type_en taskType,
+            </if>
+        a.url_name videoUrl,
+        a.file_type,
+        a.type
+        FROM `vehicle_function_domain_video` a left JOIN
+        vehicle_base_info b on b.id = a.vehicle_id LEFT JOIN
+        vehicle_domain_index e on a.function_domain_index_id = e.id left join
+        vehicle_brand c on b.brand_id = c.id LEFT JOIN
+        vehicle_functional_domain d on d.id = a.function_domain_id
+        where a.type = #{i} and a.vehicle_id = #{vehicleId}
+        ORDER BY a.id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+</mapper>

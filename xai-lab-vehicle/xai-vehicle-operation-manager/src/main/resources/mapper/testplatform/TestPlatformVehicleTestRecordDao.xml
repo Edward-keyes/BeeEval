@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestPlatformVehicleTestRecordDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestPlatformVehicleTestRecordEntity" id="testPlatformVehicleTestRecordMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="vehicleId" column="vehicle_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="scoreRecordId" column="score_record_id"/>
+    </resultMap>
+    <select id="findRecordVehicleList"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestPlatformTestRecordVehicleVO">
+        select tc.*, v.vehicle_name, v.infotainment_software_version
+        from test_record tc
+                 left join vehicle v on tc.vehicle_id = v.id
+        order by tc.create_time DESC
+    </select>
+    <select id="queryBaseValue" resultType="com.xailab.vehicle.operation.testplatform.vo.BaseValueQueryVo">
+        SELECT
+            COUNT(*) AS total_questions,
+            SUM(CASE WHEN ts.score = 5 THEN 1 ELSE 0 END) AS score_count,
+            ROUND(
+                    SUM(CASE WHEN ts.score = 5 THEN 1 ELSE 0 END) * 100.0 /
+                    NULLIF(COUNT(*), 0),
+                    2
+            ) AS score_percentage
+        FROM test_state ts
+                 JOIN test_case tc ON ts.testcase_id = tc.id
+                 JOIN test_record tr ON ts.record_id = tr.id
+        WHERE
+            tc.tertiary_metric = #{functionName}
+          AND tr.id =
+                #{vehicleId} -- 特定车辆ID
+    </select>
+    <select id="getTaskCompletionRate"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.BaseValueQueryVo">
+        SELECT -- 任务完成率
+               total_tests,
+               success_tests,
+               failure_tests,
+               ROUND((success_tests * 100.0) / NULLIF(total_tests, 0), 2) AS score_percentage
+        FROM (
+                 SELECT
+                     COUNT(*) AS total_tests,
+                     SUM(CASE WHEN ts.is_successful = 1 THEN 1 ELSE 0 END) AS success_tests,
+                     SUM(CASE WHEN ts.is_successful = 0 THEN 1 ELSE 0 END) AS failure_tests
+                 FROM test_state ts
+                          JOIN test_record tr ON ts.record_id = tr.id
+                 WHERE tr.id =
+                    #{vehicleId}
+                   AND ts.is_successful IN (0, 1)  -- 只统计成功和失败的有效测试
+             ) AS stats;
+    </select>
+
+</mapper>

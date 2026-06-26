@@ -1,0 +1,40 @@
+server:
+  port: 8184
+  servlet:
+    context-path: /xai-common
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    #MySQL??
+    driverClassName: com.mysql.cj.jdbc.Driver
+    #    url: jdbc:mysql://120.55.167.129:3306/bmw_web_scene?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://112.124.30.149:4000/beeeval_vehicle?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    #    username: root
+    #    password: bmwrootpassword
+    username: root
+    password: boring123=
+  cloud:
+    nacos:
+      serverAddr: 112.124.30.149:8848
+      username: 'nacos'
+      password: 'nacos'
+      config:
+        server-addr: 112.124.30.149:8848
+        file-extension: yaml
+        group: DEFAULT_GROUP
+        namespace: aa45eecd-ae73-4b53-a9dc-d753562339b6
+
+      discovery:
+        server-addr: 112.124.30.149:8848
+        namespace: aa45eecd-ae73-4b53-a9dc-d753562339b6
+  application:
+    name: xai-message
+  profiles:
+    active: dev
+
+
+mybatis-plus:
+  mapperLocations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestPlatformVehicleTestStateDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestPlatformVehicleTestStateEntity" id="testPlatformVehicleTestStateMap">
+        <result property="id" column="id"/>
+        <result property="testStatus" column="test_status"/>
+        <result property="recordId" column="record_id"/>
+        <result property="testcaseId" column="testcase_id"/>
+        <result property="isSuccessful" column="is_successful"/>
+        <result property="score" column="score"/>
+        <result property="hasBug" column="has_bug"/>
+        <result property="createTime" column="create_time"/>
+        <result property="audioPath" column="audio_path"/>
+        <result property="errorType" column="error_type"/>
+        <result property="errorDetail" column="error_detail"/>
+        <result property="caseType" column="case_type"/>
+    </resultMap>
+
+    <update id="updateScore">
+        update test_state set score = #{score},is_successful = #{isSuccessful} where id = #{id}
+    </update>
+
+    <select id="selectAllAndVehicleByCaseId"
+            resultType="com.xailab.vehicle.operation.testplatform.vo.TestPlatformTestStateQueryResVo">
+        SELECT ts.id,
+               ts.test_status,
+               ts.is_successful,
+               ts.score,
+               ts.error_type,
+               ts.error_detail,
+               ts.video_name,
+               v.id as vehicle_id,
+               v.vehicle_name,
+               v.infotainment_software_version
+        FROM test_state ts
+                 left join test_record tr on tr.id = ts.record_id
+                 left join vehicle v on tr.vehicle_id = v.id
+        where ts.testcase_id = #{testcaseId}
+    </select>
+
+    <select id="queryOneTestStateByCaseIdAndVehicleId"
+            resultType="com.xailab.vehicle.operation.testplatform.entity.TestPlatformVehicleTestStateEntity">
+
+        select a.* FROM
+            test_state a
+        left JOIn
+            test_record b ON
+            a.record_id = b.id
+        where
+            b.vehicle_id = #{vehicleId}
+          and
+            a.testcase_id = #{caseId}
+          and
+            a.test_status = 1
+
+    </select>
+
+    <select id="queryStateData"
+            resultType="com.xailab.vehicle.operation.testplatform.pojo.response.StateDataResponse">
+        SELECT
+            c.vehicle_name,
+            a.record_id,
+            d.id case_id,
+            d.testcase_content,
+            a.is_successful,
+            a.score,
+            a.error_type,
+            a.error_detail,a.other,
+            a.test_status,
+            a.case_type
+        FROM
+            `test_state` a,
+            test_record b,
+            vehicle c,
+            test_case d
+        WHERE
+            a.record_id = b.id
+          AND
+            b.vehicle_id = c.id
+          AND
+            d.id = a.testcase_id
+          AND
+            d.scenario_id != 6
+AND
+c.id = #{vehicleId}
+    </select>
+
+    <select id="selectTestStatePage"
+            resultType="com.xailab.vehicle.operation.testplatform.pojo.response.StateDataResponse">
+        SELECT
+        c.vehicle_name,
+        a.record_id,
+        d.id case_id,
+        d.testcase_content,
+        a.is_successful,
+        a.score,
+        a.error_type,
+        a.error_detail,
+        a.other,
+        a.test_status,
+        a.case_type,
+        e.plan_detail_name function_name,
+        d.task_detail,
+        d.tertiary_metric
+        FROM
+        `test_state` a,
+        test_record b,
+        vehicle c,
+        test_case d,
+        plan_detail e
+        WHERE
+        a.record_id = b.id
+        AND
+        b.vehicle_id = c.id
+        AND
+        d.id = a.testcase_id
+        AND
+        e.id = d.function_id
+        AND
+        d.scenario_id != 6
+        <if test="vehicleIds.size() > 0">
+        AND a.record_id in
+            <foreach collection="vehicleIds" item="vehicleId" open="(" separator="," close=")">
+                #{vehicleId}
+            </foreach>
+        </if>
+        <if test ="testcaseContent != null">
+            AND
+            d.testcase_content LIKE CONCAT('%',#{testcaseContent},'%')
+        </if>
+        <if test="isSuccessful != null">
+            AND
+            a.is_successful = #{isSuccessful}
+        </if>
+        <if test="scores.size() > 0">
+            AND
+            a.score in
+            <foreach collection="scores" item="score" open="(" separator="," close=")">
+                #{score}
+            </foreach>
+        </if>
+        <if test="testStatus != null">
+            AND
+            a.test_status = #{testStatus}
+        </if>
+        <if test="functionName != null">
+            AND
+            e.plan_detail_name LIKE CONCAT('%',#{functionName},'%')
+        </if>
+        <if test="caseType != null">
+            AND
+            a.case_type = #{caseType}
+        </if>
+        <if test="errorType != null">
+            AND
+            a.error_type = #{errorType}
+        </if>
+        <if test="caseId != null">
+            AND
+            a.testcase_id = #{caseId}
+        </if>
+        <if test="threeTag != null">
+            AND
+            d.tertiary_metric LIKE CONCAT('%',#{threeTag},'%')
+        </if>
+        <if test="errorDetail != null">
+            AND(
+            a.error_detail LIKE CONCAT('%',#{errorDetail},'%') or
+                                    a.other LIKE CONCAT('%',#{errorDetail},'%'))
+        </if>
+    </select>
+
+</mapper>

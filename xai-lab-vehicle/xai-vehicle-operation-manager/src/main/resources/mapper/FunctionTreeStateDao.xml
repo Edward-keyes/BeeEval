@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.FunctionTreeStateDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.FunctionTreeStateEntity" id="functionTreeStateMap">
+        <result property="id" column="id"/>
+        <result property="functionDomainId" column="function_domain_id"/>
+        <result property="recordId" column="record_id"/>
+        <result property="scenarioTask" column="scenario_task"/>
+        <result property="taskDetail" column="task_detail"/>
+        <result property="functionEvaluate" column="function_evaluate"/>
+        <result property="dataState" column="data_state"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+    <select id="queryInfo"
+            resultType="com.xailab.vehicle.operation.testplatform.pojo.response.FunctionTreeInfoResponse">
+        select fts.id,
+               fts.function_evaluate,
+               fts.data_state,
+               fts.record_id,
+               v.id vehicle_id,
+               v.vehicle_name,
+               v.infotainment_software_version
+        FROM function_tree_state fts
+                 left join test_record tc on fts.record_id = tc.id
+                 left join vehicle v on tc.vehicle_id = v.id
+        where fts.task_detail = #{taskDetail}
+              and deleted = 0
+
+    </select>
+
+</mapper>

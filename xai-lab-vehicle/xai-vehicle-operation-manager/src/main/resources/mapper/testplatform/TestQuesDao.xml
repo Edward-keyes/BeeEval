@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.operation.testplatform.dao.TestQuesDao">
+
+    <resultMap type="com.xailab.vehicle.operation.testplatform.entity.TestQuesEntity" id="testQuesMap">
+        <result property="id" column="id"/>
+        <result property="testName" column="test_name"/>
+        <result property="optionsType" column="options_type"/>
+        <result property="categoryType" column="category_type"/>
+        <result property="questionDimension" column="question_dimension"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+</mapper>

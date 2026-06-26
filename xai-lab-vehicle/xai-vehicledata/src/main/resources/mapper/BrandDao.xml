@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.BrandDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.BrandEntity" id="brandMap">
+        <result property="id" column="id"/>
+        <result property="brand" column="brand"/>
+        <result property="brandPicturePath" column="brand_picture_path"/>
+    </resultMap>
+
+    <select id="queryVehicleInfolist"
+            resultType="com.xailab.vehicle.xaivehicledata.entity.response.VehicleInfoOpResponse">
+        select
+            b.id,
+            a.brand,
+            a.brand_en,
+            b.vehicle_model,
+            b.vehicle_version,
+            b.vehicle_version_en,
+            b.vehicle_picture,
+            b.time_to_market,
+            b.test_date,
+            b.vehicle_system_version,
+            b.model_name,
+            b.energy_type,
+            b.energy_type_en,
+            b.endurance_mileage,
+            b.chip_information,
+            b.chip_information_en,
+            b.status
+        from
+            vehicle_brand a
+                left JOIN
+            vehicle_base_info b
+            ON
+                a.id = b.brand_id
+    </select>
+
+
+</mapper>

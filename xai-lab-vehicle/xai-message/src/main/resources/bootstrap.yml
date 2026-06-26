@@ -1,0 +1,60 @@
+server:
+  port: 8182
+  servlet:
+    context-path: /xai-message
+
+spring:
+  ############## email configuration ##############
+  mail:
+    host: smtp.feishu.cn
+    username: beeeval@xailab.cn
+    password: 3uKLemzq7c5Vnq9H
+    port: 465
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+          auth: true
+
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    #MySQL??
+    driverClassName: com.mysql.cj.jdbc.Driver
+    #    url: jdbc:mysql://120.55.167.129:3306/bmw_web_scene?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://112.124.30.149:4000/beeeval_vehicle?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    #    username: root
+    #    password: bmwrootpassword
+    username: root
+    password: boring123=
+  cloud:
+    nacos:
+      serverAddr: 112.124.30.149:8848
+      username: 'nacos'
+      password: 'nice2035'
+      config:
+        server-addr: 112.124.30.149:8848
+        file-extension: yaml
+        group: DEFAULT_GROUP
+        namespace: 43232204-1eeb-4f01-a202-a4a2eb391584
+
+      discovery:
+        server-addr: 112.124.30.149:8848
+        namespace: 43232204-1eeb-4f01-a202-a4a2eb391584
+  application:
+    name: xai-message
+  profiles:
+    active: test
+
+
+mybatis-plus:
+  mapperLocations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+captcha:
+  email:
+    from: beeeval@xailab.cn
+    password: 3uKLemzq7c5Vnq9H
+    host: smtp.feishu.cn
+    user: beeeval@xailab.cn

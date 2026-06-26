@@ -1,0 +1,20 @@
+{
+  "header": {
+    "home": "Home",
+    "whyUs": "Why Us",
+    "enterprise": "Enterprise",
+    "contact": "Contact",
+    "login": "Login",
+    "search": "Search models, features, services...",
+    "allModels": "All Models"
+  },
+  "footer": {
+    "about": "About Us",
+    "aboutText": "BeeEval is a leading intelligent vehicle evaluation platform, dedicated to providing users with the most professional and comprehensive car experience analysis.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "followUs": "Follow Us",
+    "rights": "All rights reserved"
+  }
+}
+

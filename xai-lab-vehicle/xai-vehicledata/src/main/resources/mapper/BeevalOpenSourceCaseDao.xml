@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xailab.vehicle.xaivehicledata.dao.BeeevalOpenSourceCaseDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.xailab.vehicle.xaivehicledata.entity.BeeevalOpenSourceCaseEntity" id="beeevalOpenSourceCaseMap">
+        <result property="id" column="id"/>
+        <result property="functionDomainId" column="function_domain_id"/>
+        <result property="domainIndexId" column="domain_index_id"/>
+        <result property="testCaseContent" column="test_case_content"/>
+        <result property="testCaseContentEn" column="test_case_content_en"/>
+    </resultMap>
+
+    <!-- 查询开源用例的ID和domainIndexId映射关系 -->
+    <select id="queryOpenSourceCase" resultType="com.xailab.vehicle.xaivehicledata.entity.vo.CaseIdIndexVo">
+        SELECT
+            id,
+            domain_index_id as domainIndexId
+        FROM beeeval_open_source_case
+    </select>
+
+</mapper>

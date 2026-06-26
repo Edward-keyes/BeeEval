@@ -1,0 +1,26 @@
+namespace: aa45eecd-ae73-4b53-a9dc-d753562339b6 # 仿真专用命名空间
+group: DEFAULT_GROUP # 开发专用组
+server-addr: 112.124.30.149:8848
+nacos-username: nacos
+nacos-password: nice2035
+server:
+  port: 8745 #暴露端口
+spring:
+  cloud:
+    nacos:
+      username: ${nacos-username}
+      password: ${nacos-password}
+      config:
+        server-addr: ${server-addr}
+        namespace: ${namespace}
+        file-extension: yaml
+        group: ${group}
+      discovery:
+        server-addr: ${server-addr}
+        namespace: ${namespace}
+        group: ${group}
+#        register-enabled: false
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台打印 SQL
